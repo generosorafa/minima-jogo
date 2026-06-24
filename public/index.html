@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Mínima: memorize suas cartas, arrisque e termine com a menor pontuação."
+    />
+    <meta name="theme-color" content="#082b24" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="application-name" content="Mínima" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mínima" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mínima" />
+    <meta
+      property="og:description"
+      content="Memorize. Arrisque. Faça menos."
+    />
+    <title>Mínima - Jogo de Cartas</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/app-icon.svg" />
+    <link rel="apple-touch-icon" href="./assets/app-icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="table-shell" aria-label="Mesa de jogo">
+        <canvas id="tableCanvas" width="1280" height="820"></canvas>
+        <section class="start-overlay" aria-label="Iniciar partida">
+          <div class="start-card">
+            <div class="start-heading">
+              <img src="./assets/app-icon.svg" alt="" width="52" height="52" />
+              <p class="eyebrow">Beta de testes</p>
+            </div>
+            <h1>Mínima</h1>
+            <p class="start-rule">
+              Memorize. Arrisque. Faça menos. 50 pontos elimina.
+            </p>
+            <div class="start-fields">
+              <label class="setup-field" for="tablePlayerName">
+                <span>Nome</span>
+                <input id="tablePlayerName" maxlength="14" autocomplete="off" value="Voce" />
+              </label>
+              <label class="setup-field" for="tablePlayerCount">
+                <span>Jogadores</span>
+                <select id="tablePlayerCount">
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4" selected>4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </label>
+            </div>
+            <button id="tableStartMatchButton" type="button">Iniciar partida</button>
+            <small class="version-label">Versao <span data-app-version></span></small>
+          </div>
+        </section>
+        <button
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          type="button"
+          aria-label="Abrir menu"
+          title="Menu"
+          hidden
+        >
+          ☰
+        </button>
+        <div class="table-top-hud" aria-label="Resumo da partida">
+          <span id="tableRound">Rodada 0</span>
+          <span id="tablePlayers">0 jogadores</span>
+        </div>
+        <div class="table-status-bubble" aria-live="polite">
+          <strong id="tablePhaseText">Aguardando</strong>
+          <span id="tableStatusText">Escolha a quantidade de jogadores.</span>
+        </div>
+        <div class="table-action-bar" aria-label="Acoes da mesa" hidden>
+          <button id="tableStopButton" type="button">Pedir para parar</button>
+          <button id="tableDiscardDrawnButton" type="button">Descartar comprada</button>
+        </div>
+        <div class="resume-notice" id="resumeNotice" role="status" aria-live="polite" hidden>
+          Partida retomada
+        </div>
+        <section class="beta-menu" id="betaMenu" aria-label="Menu da partida" hidden>
+          <button
+            class="beta-menu-backdrop"
+            id="betaMenuBackdrop"
+            type="button"
+            aria-label="Fechar menu"
+          ></button>
+          <div class="beta-menu-sheet">
+            <div>
+              <p class="eyebrow">Mínima</p>
+              <strong>Partida em andamento</strong>
+            </div>
+            <button id="continueMatchButton" type="button">Continuar jogando</button>
+            <button class="danger-button" id="resetMatchButton" type="button">
+              Nova partida
+            </button>
+            <small class="version-label">Beta <span data-app-version></span></small>
+          </div>
+        </section>
+        <section class="round-overlay" aria-label="Placar da rodada" hidden>
+          <div class="round-card">
+            <p class="round-kicker">Fim da rodada</p>
+            <h2 id="roundOverlayTitle">Rodada encerrada</h2>
+            <div class="round-table" id="roundScoreRows"></div>
+            <button id="nextRoundButton" type="button">Proxima rodada</button>
+          </div>
+        </section>
+      </section>
+
+      <aside class="control-panel" aria-label="Controles">
+        <header class="brand-block">
+          <img src="./assets/app-icon.svg" alt="" width="42" height="42" />
+          <div>
+            <p class="eyebrow">Beta <span data-app-version></span></p>
+            <h1>Mínima</h1>
+          </div>
+        </header>
+
+        <section class="setup-row" aria-label="Configuracao">
+          <label class="setup-field setup-field-name" for="playerName">
+            <span>Nome</span>
+            <input id="playerName" maxlength="14" autocomplete="off" value="Voce" />
+          </label>
+          <label class="setup-field" for="playerCount">
+            <span>Jogadores</span>
+            <select id="playerCount">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </label>
+          <button id="startMatchButton" type="button">Nova partida</button>
+        </section>
+
+        <section class="status-strip" aria-live="polite">
+          <span id="phaseBadge">Aguardando</span>
+          <p id="statusLine">Escolha a quantidade de jogadores.</p>
+        </section>
+
+        <section class="drawn-panel" aria-label="Carta comprada" hidden>
+          <div class="mini-card" id="drawnCard">--</div>
+          <div class="drawn-copy">
+            <strong id="drawnTitle">Sem carta</strong>
+            <span id="drawnMeta">Compre do baralho ou do morto.</span>
+          </div>
+        </section>
+
+        <section class="action-grid" aria-label="Acoes do turno">
+          <button id="drawStockButton" type="button">Comprar baralho</button>
+          <button id="drawDiscardButton" type="button">Pegar morto</button>
+        </section>
+
+        <section class="scoreboard" aria-label="Placar">
+          <h2>Placar</h2>
+          <div id="scoreboard"></div>
+        </section>
+
+        <details class="event-log" aria-label="Registro">
+          <summary>Registro</summary>
+          <ol id="eventLog"></ol>
+        </details>
+      </aside>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
