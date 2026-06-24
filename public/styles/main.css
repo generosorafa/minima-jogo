@@ -197,7 +197,7 @@ input {
 
 .mobile-menu-button {
   position: absolute;
-  top: calc(116px + env(safe-area-inset-top));
+  top: max(calc(116px + env(safe-area-inset-top)), 164px);
   left: calc(12px + env(safe-area-inset-left));
   z-index: 3;
   display: none;
@@ -214,7 +214,7 @@ input {
 
 .resume-notice {
   position: absolute;
-  top: calc(116px + env(safe-area-inset-top));
+  top: max(calc(116px + env(safe-area-inset-top)), 164px);
   left: 50%;
   z-index: 5;
   transform: translateX(-50%);
@@ -730,12 +730,16 @@ body[data-phase="idle"] .start-overlay {
 @media (max-width: 640px) {
   html,
   body {
-    overflow: auto;
+    overflow: hidden;
   }
 
   .app-shell {
+    height: 100svh;
+    height: 100dvh;
+    min-height: 0;
     padding: 0;
     gap: 0;
+    overflow: hidden;
   }
 
   .table-shell {
@@ -792,7 +796,7 @@ body[data-phase="idle"] .start-overlay {
   .table-status-bubble {
     position: absolute;
     left: 50%;
-    bottom: calc(86px + env(safe-area-inset-bottom));
+    bottom: calc(18px + env(safe-area-inset-bottom));
     z-index: 2;
     display: grid;
     gap: 3px;
@@ -807,6 +811,14 @@ body[data-phase="idle"] .start-overlay {
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
     backdrop-filter: blur(12px);
     pointer-events: none;
+  }
+
+  body[data-phase="humanAction"] .table-status-bubble {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .table-action-bar {
+    bottom: calc(16px + env(safe-area-inset-bottom));
   }
 
   .mobile-menu-button {

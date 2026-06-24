@@ -473,13 +473,15 @@ export class TableRenderer {
 function centerLayout(width, height) {
   const centerX = playableRight(width) * 0.5;
   const isNarrow = width < 560;
+  const isTallMobile = isNarrow && height / width >= 1.9;
   const cardW = clamp(width * 0.062, 48, 68);
   const cardH = cardW * CARD_RATIO;
-  const y = height * 0.46 - cardH / 2;
+  const y = height * (isTallMobile ? 0.45 : 0.46) - cardH / 2;
   const stockX = centerX - cardW - 18;
   const discardX = centerX + 18;
   const humanCardW = isNarrow ? clamp(width * 0.14, 52, 70) : clamp(width * 0.064, 56, 78);
-  const humanY = height - humanCardW * CARD_RATIO - (isNarrow ? 180 : 58);
+  const humanY =
+    height - humanCardW * CARD_RATIO - (isTallMobile ? 195 : isNarrow ? 180 : 58);
   const mobileDrawnMinY = y + cardH + 22;
   const mobileDrawnMaxY = humanY - cardH - 42;
   const mobileDrawnPreferredY = humanY - cardH - 56;
@@ -603,9 +605,10 @@ function playerPositions(count, width, height) {
   const playRight = playableRight(width);
   const centerX = playRight * 0.5;
   const isNarrow = width < 560;
+  const isTallMobile = isNarrow && height / width >= 1.9;
   const cardW = isNarrow ? clamp(width * 0.075, 30, 42) : clamp(width * 0.052, 42, 62);
   const humanCardW = isNarrow ? clamp(width * 0.14, 52, 70) : clamp(width * 0.064, 56, 78);
-  const humanBottomMargin = isNarrow ? 180 : 92;
+  const humanBottomMargin = isTallMobile ? 195 : isNarrow ? 180 : 92;
   const positions = [
     { x: centerX, y: height - humanCardW * CARD_RATIO - humanBottomMargin, cardW: humanCardW, gap: isNarrow ? 7 : 9 },
   ];
@@ -615,7 +618,12 @@ function playerPositions(count, width, height) {
     const spreadStart = isNarrow ? 0.18 : 0.25;
     const spread = isNarrow ? 0.64 : 0.5;
     const x = playRight * (spreadStart + (index * spread) / Math.max(1, topSlots - 1));
-    positions.push({ x, y: isNarrow ? 64 : 58, cardW, gap: isNarrow ? 4 : 7 });
+    positions.push({
+      x,
+      y: isTallMobile ? 104 : isNarrow ? 76 : 58,
+      cardW,
+      gap: isNarrow ? 4 : 7,
+    });
   }
   if (botCount >= 4) {
     positions.push({ x: 94, y: height * 0.5 - cardW * CARD_RATIO / 2, cardW, gap: 8 });

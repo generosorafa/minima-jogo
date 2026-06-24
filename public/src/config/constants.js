@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.6.0-beta.1";
+export const APP_VERSION = "0.6.1-beta.1";
 
 export const GAME_CONFIG = Object.freeze({
   eliminationScore: 50,
