@@ -280,16 +280,30 @@ export class TableRenderer {
       if (!slot) return;
       const drawnFrom = action.fromDrawnArea ? center.drawnRect : sourceRect(action.source, center);
       const inProgress = segmentProgress(age, 0, SWAP_TRAVEL_MS * 0.72);
-      this.drawFlyingCard(ctx, action.card, drawnFrom, slot, inProgress);
+      this.drawFlyingCard(
+        ctx,
+        action.card,
+        drawnFrom,
+        slot,
+        inProgress,
+        shouldRevealFlyingCard(action, "incoming"),
+      );
 
       if (action.replacedCard) {
         const outProgress = segmentProgress(age, SWAP_TRAVEL_MS * 0.22, SWAP_TRAVEL_MS);
-        this.drawFlyingCard(ctx, action.replacedCard, slot, center.discardRect, outProgress);
+        this.drawFlyingCard(
+          ctx,
+          action.replacedCard,
+          slot,
+          center.discardRect,
+          outProgress,
+          shouldRevealFlyingCard(action, "outgoing"),
+        );
       }
     }
   }
 
-  drawFlyingCard(ctx, card, from, to, rawProgress) {
+  drawFlyingCard(ctx, card, from, to, rawProgress, faceUp = true) {
     const progress = easeOutCubic(clamp(rawProgress, 0, 1));
     const x = lerp(from.x, to.x, progress);
     const y = lerp(from.y, to.y, progress) - Math.sin(progress * Math.PI) * 28;
@@ -302,7 +316,11 @@ export class TableRenderer {
     ctx.translate(x + w / 2, y + h / 2);
     ctx.rotate(tilt);
     ctx.scale(scale, scale);
-    this.drawCardFace(ctx, -w / 2, -h / 2, w, h, card, true, true);
+    if (faceUp) {
+      this.drawCardFace(ctx, -w / 2, -h / 2, w, h, card, true, true);
+    } else {
+      this.drawCardBack(ctx, -w / 2, -h / 2, w, h, "", true);
+    }
     ctx.restore();
   }
 
@@ -831,4 +849,10 @@ function wave(now, duration) {
 
 function playableRight(width) {
   return width >= 1000 ? width - 340 : width;
+}
+
+export function shouldRevealFlyingCard(action, leg = "incoming") {
+  if (leg === "outgoing") return true;
+  if (action?.type !== "swap") return true;
+  return Boolean(action.fromDrawnArea || action.source === "discard");
 }
