@@ -7,17 +7,21 @@ import {
 } from "./game/persistence.js";
 import { TableRenderer } from "./rendering/tableRenderer.js";
 import { DomUi } from "./ui/domUi.js";
+import { FeedbackController } from "./ui/feedback.js";
 
 const match = new Match();
 const canvas = document.querySelector("#tableCanvas");
 const renderer = new TableRenderer(canvas);
 const ui = new DomUi(match);
+const feedback = new FeedbackController();
 let botTimer = null;
 let hiddenAt = null;
 let tutorialOpenedAt = null;
+let announcedResultKey = null;
 const BOT_TURN_DELAY_MS = 1080;
 
 ui.applySetup(loadSetup() ?? undefined);
+ui.applyFeedbackPreference(feedback.isEnabled());
 
 ui.bind({
   startMatch(playerCount, playerName) {
@@ -30,6 +34,8 @@ ui.bind({
     }
     clearBotTimer();
     match.startMatch(playerCount, playerName);
+    announcedResultKey = null;
+    feedback.play("start");
     saveSetup({ playerCount, playerName });
     persistMatch();
     ui.startTutorialIfNeeded();
@@ -40,25 +46,30 @@ ui.bind({
   },
   drawStock() {
     match.drawFromStock();
+    feedback.play("draw");
     persistMatch();
     focusTableForAction();
   },
   drawDiscard() {
     match.drawFromDiscard();
+    feedback.play("draw");
     persistMatch();
     focusTableForAction();
   },
   requestStop() {
     match.requestStop();
+    feedback.play("stop");
     persistMatch();
   },
   discardDrawn() {
     match.discardDrawn();
+    feedback.play("discard");
     persistMatch();
     scheduleAutomation();
   },
   swap(slotIndex) {
     match.swapHuman(slotIndex);
+    feedback.play("swap");
     persistMatch();
     scheduleAutomation();
   },
@@ -71,6 +82,8 @@ ui.bind({
     } else {
       match.startRound();
     }
+    announcedResultKey = null;
+    feedback.play("start");
     persistMatch();
     scheduleAutomation();
   },
@@ -92,10 +105,14 @@ ui.bind({
     persistMatch();
     scheduleAutomation();
   },
+  feedbackChanged(enabled) {
+    feedback.setEnabled(enabled);
+  },
   resetMatch() {
     if (!window.confirm("Apagar esta partida e voltar para a tela inicial?")) return;
     clearBotTimer();
     match.reset();
+    announcedResultKey = null;
     persistMatch();
     ui.closeMenu();
   },
@@ -106,16 +123,19 @@ canvas.addEventListener("click", (event) => {
   if (!hit?.enabled) return;
   if (hit.type === "stock") {
     match.drawFromStock();
+    feedback.play("draw");
     persistMatch();
     return;
   }
   if (hit.type === "discard") {
     match.drawFromDiscard();
+    feedback.play("draw");
     persistMatch();
     return;
   }
   if (hit.type === "hand-slot") {
     match.swapHuman(hit.slotIndex);
+    feedback.play("swap");
     persistMatch();
     scheduleAutomation();
   }
@@ -143,7 +163,21 @@ function loop(now) {
   const state = match.snapshot(now);
   renderer.render(state, now);
   ui.update(state);
+  announceRoundResult(state);
   requestAnimationFrame(loop);
+}
+
+function announceRoundResult(state) {
+  if (!state.roundResult || !ui.isRoundOverlayVisible()) return;
+  const resultKey = `${state.roundNumber}:${state.phase}`;
+  if (announcedResultKey === resultKey) return;
+  announcedResultKey = resultKey;
+  const human = state.players.find((player) => player.isHuman);
+  if (state.phase === "matchOver") {
+    feedback.play(state.winner?.isHuman ? "win" : "bad");
+    return;
+  }
+  feedback.play((human?.lastDelta ?? 0) === 0 ? "good" : "bad");
 }
 
 function scheduleAutomation() {

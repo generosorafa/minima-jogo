@@ -4,7 +4,7 @@ Jogo de cartas e memória em que vence quem acumular menos pontos.
 
 ## Beta
 
-Versão atual: `0.7.1-beta.1`
+Versão atual: `0.8.0-beta.1`
 
 Site: <https://minima-jogo.web.app>
 
@@ -17,6 +17,15 @@ O relatório da versão está em
 ```bash
 node tests/simulation.test.mjs
 node tools/simulate-balance.mjs --matches=5000 --seed=20260625
+```
+
+## Feedback
+
+Sons curtos e vibração opcional acompanham compras, trocas, descartes e resultados.
+A preferência pode ser alterada no menu e fica salva no navegador.
+
+```bash
+node tests/feedback.test.mjs
 ```
 
 ## Publicação

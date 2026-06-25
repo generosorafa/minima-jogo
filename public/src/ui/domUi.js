@@ -26,6 +26,7 @@ export class DomUi {
       betaMenuBackdrop: document.querySelector("#betaMenuBackdrop"),
       continueMatchButton: document.querySelector("#continueMatchButton"),
       tutorialButton: document.querySelector("#tutorialButton"),
+      feedbackToggle: document.querySelector("#feedbackToggle"),
       resetMatchButton: document.querySelector("#resetMatchButton"),
       tutorialOverlay: document.querySelector("#tutorialOverlay"),
       tutorialCard: document.querySelector(".tutorial-card"),
@@ -115,6 +116,9 @@ export class DomUi {
       actions.menuClosed?.();
       this.openTutorial();
     });
+    this.refs.feedbackToggle.addEventListener("change", () =>
+      actions.feedbackChanged?.(this.refs.feedbackToggle.checked),
+    );
     this.refs.tutorialSkipButton.addEventListener("click", () =>
       this.closeTutorial(true),
     );
@@ -154,6 +158,14 @@ export class DomUi {
       playerName: this.refs.tablePlayerName.value,
       playerCount: Number(this.refs.tablePlayerCount.value),
     };
+  }
+
+  applyFeedbackPreference(enabled) {
+    this.refs.feedbackToggle.checked = Boolean(enabled);
+  }
+
+  isRoundOverlayVisible() {
+    return !this.refs.roundOverlay.hidden;
   }
 
   openMenu() {

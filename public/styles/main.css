@@ -265,6 +265,74 @@ input {
   margin-top: 3px;
 }
 
+.menu-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid #3a484b;
+  border-radius: 8px;
+  background: rgba(17, 26, 27, 0.82);
+  color: var(--ink);
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.menu-setting > span:first-child {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.menu-setting input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border: 1px solid #526164;
+  border-radius: 999px;
+  background: #252f31;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.toggle-track::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #cad2ce;
+  content: "";
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+.menu-setting input:checked + .toggle-track {
+  border-color: #6eb18d;
+  background: #2d7254;
+}
+
+.menu-setting input:checked + .toggle-track::after {
+  transform: translateX(18px);
+  background: #f4efe3;
+}
+
+.menu-setting:focus-within {
+  outline: 2px solid rgba(215, 179, 90, 0.72);
+  outline-offset: 2px;
+}
+
 .tutorial-overlay {
   position: absolute;
   inset: 0;
