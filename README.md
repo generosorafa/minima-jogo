@@ -4,7 +4,7 @@ Jogo de cartas e memória em que vence quem acumular menos pontos.
 
 ## Beta
 
-Versão atual: `0.8.0-beta.1`
+Versão atual: `0.9.0-beta.1`
 
 Site: <https://minima-jogo.web.app>
 
@@ -26,6 +26,17 @@ A preferência pode ser alterada no menu e fica salva no navegador.
 
 ```bash
 node tests/feedback.test.mjs
+```
+
+## Cartas
+
+As cartas usam um atlas WebP otimizado a partir do pacote de moxica. Os
+arquivos originais não são redistribuídos. Consulte
+[`ASSET_LICENSES.md`](ASSET_LICENSES.md).
+
+```bash
+python tools/build-card-atlas.py caminho/para/Cards public/assets/cards
+node tests/cardArt.test.mjs
 ```
 
 ## Publicação

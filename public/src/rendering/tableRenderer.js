@@ -1,6 +1,7 @@
 import { cardValue, shortCard } from "../core/rules.js";
+import { CardArt, CARD_ART_RATIO } from "./cardArt.js";
 
-const CARD_RATIO = 1.38;
+const CARD_RATIO = CARD_ART_RATIO;
 const DRAW_TRAVEL_MS = 560;
 const SWAP_TRAVEL_MS = 760;
 const DISCARD_TRAVEL_MS = 560;
@@ -16,6 +17,7 @@ export class TableRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.hitRegions = [];
+    this.cardArt = new CardArt();
   }
 
   render(state, now = performance.now()) {
@@ -386,6 +388,11 @@ export class TableRenderer {
 
   drawCardBack(ctx, x, y, w, h, tag = "", active = false) {
     drawCardShadow(ctx, x, y, w, h, active);
+    if (this.cardArt.drawBack(ctx, x, y, w, h)) {
+      drawArtCardBorder(ctx, x, y, w, h);
+      drawBackTag(ctx, tag || "M", x + w / 2, y + h / 2, w);
+      return;
+    }
     roundedRect(ctx, x, y, w, h, 8);
     const back = ctx.createLinearGradient(x, y, x + w, y + h);
     back.addColorStop(0, "#bd3444");
@@ -435,6 +442,11 @@ export class TableRenderer {
 
   drawCardFace(ctx, x, y, w, h, card, highContrast, active = false) {
     drawCardShadow(ctx, x, y, w, h, active);
+    if (this.cardArt.drawFace(ctx, card, x, y, w, h)) {
+      drawArtCardBorder(ctx, x, y, w, h);
+      drawPointBadge(ctx, card, x, y, w, h, highContrast);
+      return;
+    }
     roundedRect(ctx, x, y, w, h, 8);
     const front = ctx.createLinearGradient(x, y, x + w, y + h);
     front.addColorStop(0, "#fff7e7");
@@ -713,6 +725,62 @@ function drawCardShadow(ctx, x, y, w, h, active) {
   roundedRect(ctx, x, y, w, h, 8);
   ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
   ctx.fill();
+  ctx.restore();
+}
+
+function drawArtCardBorder(ctx, x, y, w, h) {
+  ctx.save();
+  roundedRect(ctx, x, y, w, h, Math.max(5, w * 0.07));
+  ctx.strokeStyle = "rgba(14, 22, 23, 0.62)";
+  ctx.lineWidth = Math.max(1, w * 0.018);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawBackTag(ctx, text, x, y, w) {
+  const radius = clamp(w * 0.2, 9, 16);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(6, 18, 22, 0.82)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(239, 197, 103, 0.84)";
+  ctx.lineWidth = Math.max(1, w * 0.025);
+  ctx.stroke();
+  ctx.fillStyle = "#f6dfa3";
+  ctx.font = `900 ${clamp(w * 0.2, 9, 15)}px Inter, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawPointBadge(ctx, card, x, y, w, h, highContrast) {
+  const valueText = `${cardValue(card)} pts`;
+  ctx.save();
+  ctx.font = `900 ${clamp(w * 0.16, 7, 12)}px Inter, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const badgeWidth = Math.max(w * 0.46, ctx.measureText(valueText).width + 8);
+  const badgeHeight = clamp(h * 0.13, 13, 22);
+  const badgeY = y + h * 0.73;
+  roundedRect(
+    ctx,
+    x + w / 2 - badgeWidth / 2,
+    badgeY,
+    badgeWidth,
+    badgeHeight,
+    999,
+  );
+  ctx.fillStyle = highContrast
+    ? "rgba(255, 248, 230, 0.9)"
+    : "rgba(255, 248, 230, 0.78)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(45, 35, 26, 0.2)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = "#33271d";
+  ctx.fillText(valueText, x + w / 2, badgeY + badgeHeight / 2);
   ctx.restore();
 }
 
