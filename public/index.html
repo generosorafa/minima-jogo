@@ -102,10 +102,41 @@
               <strong>Partida em andamento</strong>
             </div>
             <button id="continueMatchButton" type="button">Continuar jogando</button>
+            <button id="tutorialButton" type="button">Como jogar</button>
             <button class="danger-button" id="resetMatchButton" type="button">
               Nova partida
             </button>
             <small class="version-label">Beta <span data-app-version></span></small>
+          </div>
+        </section>
+        <section
+          class="tutorial-overlay"
+          id="tutorialOverlay"
+          aria-label="Tutorial inicial"
+          aria-modal="true"
+          role="dialog"
+          hidden
+        >
+          <div class="tutorial-card" data-tutorial-step="0">
+            <div class="tutorial-progress" aria-hidden="true">
+              <span class="is-current"></span>
+              <span></span>
+              <span></span>
+            </div>
+            <p class="tutorial-kicker" id="tutorialKicker">Passo 1 de 3</p>
+            <h2 id="tutorialTitle">Memorize as pontas</h2>
+            <p id="tutorialText">
+              Voce vera as duas cartas das pontas por 2 segundos. A carta do meio
+              continua desconhecida.
+            </p>
+            <div class="tutorial-actions">
+              <button class="tutorial-skip" id="tutorialSkipButton" type="button">
+                Pular
+              </button>
+              <button class="tutorial-next" id="tutorialNextButton" type="button">
+                Proximo
+              </button>
+            </div>
           </div>
         </section>
         <section class="round-overlay" aria-label="Placar da rodada" hidden>

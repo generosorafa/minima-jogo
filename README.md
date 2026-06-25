@@ -4,7 +4,7 @@ Jogo de cartas e memória em que vence quem acumular menos pontos.
 
 ## Beta
 
-Versão atual: `0.6.2-beta.1`
+Versão atual: `0.7.0-beta.1`
 
 Site: <https://minima-jogo.web.app>
 

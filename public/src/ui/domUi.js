@@ -1,8 +1,14 @@
 import { formatCard, cardValue } from "../core/rules.js";
 import { APP_VERSION } from "../config/constants.js";
+import {
+  hasSeenTutorial,
+  markTutorialSeen,
+  TUTORIAL_STEPS,
+} from "./tutorial.js";
 
 const ROUND_OVERLAY_DELAY_MS = 760;
 const ROUND_REVEAL_DELAY_MS = 3200;
+const STOP_CONFIRMATION_MS = 3200;
 
 export class DomUi {
   constructor(match) {
@@ -19,7 +25,15 @@ export class DomUi {
       betaMenu: document.querySelector("#betaMenu"),
       betaMenuBackdrop: document.querySelector("#betaMenuBackdrop"),
       continueMatchButton: document.querySelector("#continueMatchButton"),
+      tutorialButton: document.querySelector("#tutorialButton"),
       resetMatchButton: document.querySelector("#resetMatchButton"),
+      tutorialOverlay: document.querySelector("#tutorialOverlay"),
+      tutorialCard: document.querySelector(".tutorial-card"),
+      tutorialKicker: document.querySelector("#tutorialKicker"),
+      tutorialTitle: document.querySelector("#tutorialTitle"),
+      tutorialText: document.querySelector("#tutorialText"),
+      tutorialSkipButton: document.querySelector("#tutorialSkipButton"),
+      tutorialNextButton: document.querySelector("#tutorialNextButton"),
       resumeNotice: document.querySelector("#resumeNotice"),
       phaseBadge: document.querySelector("#phaseBadge"),
       statusLine: document.querySelector("#statusLine"),
@@ -48,9 +62,15 @@ export class DomUi {
       node.textContent = APP_VERSION;
     });
     this.resumeNoticeTimer = null;
+    this.stopConfirmationTimer = null;
+    this.stopConfirmationPending = false;
+    this.tutorialStep = 0;
+    this.tutorialActive = false;
+    this.actions = null;
   }
 
   bind(actions) {
+    this.actions = actions;
     this.refs.startMatchButton.addEventListener("click", () => this.startMatch(actions));
     this.refs.tableStartMatchButton.addEventListener("click", () =>
       this.startMatch(actions, true),
@@ -73,7 +93,9 @@ export class DomUi {
     });
     this.refs.drawStockButton.addEventListener("click", actions.drawStock);
     this.refs.drawDiscardButton.addEventListener("click", actions.drawDiscard);
-    this.refs.tableStopButton.addEventListener("click", actions.requestStop);
+    this.refs.tableStopButton.addEventListener("click", () =>
+      this.handleStopRequest(actions),
+    );
     this.refs.tableDiscardDrawnButton.addEventListener("click", actions.discardDrawn);
     this.refs.nextRoundButton.addEventListener("click", actions.nextRound);
     this.refs.mobileMenuButton.addEventListener("click", () => {
@@ -88,6 +110,17 @@ export class DomUi {
       this.closeMenu();
       actions.menuClosed?.();
     });
+    this.refs.tutorialButton.addEventListener("click", () => {
+      this.closeMenu();
+      actions.menuClosed?.();
+      this.openTutorial();
+    });
+    this.refs.tutorialSkipButton.addEventListener("click", () =>
+      this.closeTutorial(true),
+    );
+    this.refs.tutorialNextButton.addEventListener("click", () =>
+      this.advanceTutorial(),
+    );
     this.refs.resetMatchButton.addEventListener("click", actions.resetMatch);
   }
 
@@ -124,6 +157,7 @@ export class DomUi {
   }
 
   openMenu() {
+    this.resetStopConfirmation();
     this.refs.betaMenu.hidden = false;
     document.body.dataset.menuOpen = "true";
   }
@@ -137,6 +171,88 @@ export class DomUi {
     return !this.refs.betaMenu.hidden;
   }
 
+  startTutorialIfNeeded() {
+    if (hasSeenTutorial()) return false;
+    this.openTutorial();
+    return true;
+  }
+
+  openTutorial() {
+    this.resetStopConfirmation();
+    this.tutorialStep = 0;
+    this.tutorialActive = true;
+    this.renderTutorial();
+    this.refs.tutorialOverlay.hidden = false;
+    document.body.dataset.tutorialOpen = "true";
+    this.refs.tutorialNextButton.focus({ preventScroll: true });
+    this.actions?.tutorialOpened?.();
+  }
+
+  advanceTutorial() {
+    if (!this.tutorialActive) return;
+    if (this.tutorialStep < TUTORIAL_STEPS.length - 1) {
+      this.tutorialStep += 1;
+      this.renderTutorial();
+      return;
+    }
+    this.closeTutorial(true);
+  }
+
+  closeTutorial(markSeen = false) {
+    if (!this.tutorialActive) return;
+    if (markSeen) markTutorialSeen();
+    this.tutorialActive = false;
+    this.refs.tutorialOverlay.hidden = true;
+    delete document.body.dataset.tutorialOpen;
+    this.actions?.tutorialClosed?.();
+  }
+
+  isTutorialOpen() {
+    return this.tutorialActive;
+  }
+
+  renderTutorial() {
+    const step = TUTORIAL_STEPS[this.tutorialStep];
+    this.refs.tutorialCard.dataset.tutorialStep = String(this.tutorialStep);
+    this.refs.tutorialKicker.textContent =
+      `Passo ${this.tutorialStep + 1} de ${TUTORIAL_STEPS.length}`;
+    this.refs.tutorialTitle.textContent = step.title;
+    this.refs.tutorialText.textContent = step.text;
+    this.refs.tutorialNextButton.textContent =
+      this.tutorialStep === TUTORIAL_STEPS.length - 1 ? "Comecar" : "Proximo";
+    this.refs.tutorialCard
+      .querySelectorAll(".tutorial-progress span")
+      .forEach((node, index) => node.classList.toggle("is-current", index === this.tutorialStep));
+  }
+
+  handleStopRequest(actions) {
+    if (this.stopConfirmationPending) {
+      this.resetStopConfirmation();
+      actions.requestStop();
+      return;
+    }
+    this.stopConfirmationPending = true;
+    this.refs.tableStopButton.dataset.confirming = "true";
+    this.refs.tableStopButton.textContent = "Confirmar parada";
+    this.refs.tableStatusText.textContent =
+      "Confirme a parada. Empate tambem faz voce perder.";
+    this.refs.statusLine.textContent =
+      "Confirme a parada. Empate tambem faz voce perder.";
+    window.clearTimeout(this.stopConfirmationTimer);
+    this.stopConfirmationTimer = window.setTimeout(
+      () => this.resetStopConfirmation(),
+      STOP_CONFIRMATION_MS,
+    );
+  }
+
+  resetStopConfirmation() {
+    window.clearTimeout(this.stopConfirmationTimer);
+    this.stopConfirmationTimer = null;
+    this.stopConfirmationPending = false;
+    this.refs.tableStopButton.removeAttribute("data-confirming");
+    this.refs.tableStopButton.textContent = "Pedir para parar";
+  }
+
   showResumeNotice() {
     window.clearTimeout(this.resumeNoticeTimer);
     this.refs.resumeNotice.hidden = false;
@@ -148,9 +264,19 @@ export class DomUi {
   update(state) {
     const now = performance.now();
     const revealPending = isRoundRevealPending(state, now);
+    if (
+      this.stopConfirmationPending &&
+      (state.phase !== "humanAction" || state.stopRequestedBy)
+    ) {
+      this.resetStopConfirmation();
+    }
     document.body.dataset.phase = state.phase;
     this.refs.phaseBadge.textContent = state.phaseLabel;
-    this.refs.statusLine.textContent = revealPending ? "Revelando as cartas da rodada." : state.status;
+    this.refs.statusLine.textContent = revealPending
+      ? "Revelando as cartas da rodada."
+      : this.stopConfirmationPending
+        ? "Confirme a parada. Empate tambem faz voce perder."
+        : state.status;
     this.updateTableHud(state, revealPending);
     this.updateDrawn(state);
     this.updateButtons(state);
@@ -168,7 +294,9 @@ export class DomUi {
     this.refs.tablePhaseText.textContent = state.phaseLabel;
     this.refs.tableStatusText.textContent = revealPending
       ? "Revelando as cartas."
-      : shortStatus(state);
+      : this.stopConfirmationPending
+        ? "Confirme a parada. Empate tambem faz voce perder."
+        : shortStatus(state);
   }
 
   updateDrawn(state) {

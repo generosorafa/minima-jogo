@@ -265,6 +265,91 @@ input {
   margin-top: 3px;
 }
 
+.tutorial-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  padding: 20px 360px 20px 20px;
+  background: rgba(1, 8, 7, 0.42);
+  backdrop-filter: blur(1.5px);
+}
+
+.tutorial-card {
+  display: grid;
+  gap: 10px;
+  width: min(390px, 100%);
+  border: 1px solid rgba(215, 179, 90, 0.52);
+  border-radius: 8px;
+  background: rgba(6, 18, 16, 0.96);
+  padding: 20px;
+  box-shadow:
+    0 26px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(215, 179, 90, 0.1) inset;
+}
+
+.tutorial-progress {
+  display: flex;
+  gap: 6px;
+}
+
+.tutorial-progress span {
+  width: 24px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(244, 239, 227, 0.18);
+}
+
+.tutorial-progress span.is-current {
+  background: var(--gold);
+}
+
+.tutorial-kicker {
+  margin: 4px 0 0;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tutorial-card h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.tutorial-card > p:last-of-type {
+  min-height: 44px;
+  margin: 0;
+  color: #d2d9d5;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tutorial-actions {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tutorial-next {
+  border-color: #d49434;
+  background: #d98d2c;
+  color: #1b1208;
+  font-weight: 900;
+}
+
+.tutorial-next:hover:not(:disabled) {
+  background: #eda33e;
+}
+
+.tutorial-skip {
+  background: transparent;
+  color: var(--muted);
+}
+
 .danger-button {
   border-color: rgba(215, 93, 85, 0.52);
   background: rgba(93, 31, 28, 0.86);
@@ -614,6 +699,13 @@ body[data-phase="idle"] .start-overlay {
   color: #ffe0a0;
 }
 
+#tableStopButton[data-confirming="true"] {
+  border-color: rgba(215, 93, 85, 0.78);
+  background: rgba(112, 38, 34, 0.96);
+  color: #fff1ef;
+  font-weight: 900;
+}
+
 .scoreboard,
 .event-log {
   padding: 10px;
@@ -838,6 +930,34 @@ body[data-phase="idle"] .start-overlay {
 
   .round-overlay {
     padding: 14px;
+  }
+
+  .tutorial-overlay {
+    align-items: start;
+    padding:
+      max(calc(178px + env(safe-area-inset-top)), 190px)
+      14px
+      calc(18px + env(safe-area-inset-bottom));
+    background: rgba(1, 8, 7, 0.32);
+  }
+
+  .tutorial-card {
+    width: min(340px, 100%);
+    gap: 9px;
+    padding: 17px;
+  }
+
+  .tutorial-card h2 {
+    font-size: 23px;
+  }
+
+  .tutorial-card > p:last-of-type {
+    min-height: 58px;
+    font-size: 13px;
+  }
+
+  .tutorial-actions {
+    grid-template-columns: 82px minmax(0, 1fr);
   }
 
   .round-card {

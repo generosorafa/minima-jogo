@@ -14,6 +14,7 @@ const renderer = new TableRenderer(canvas);
 const ui = new DomUi(match);
 let botTimer = null;
 let hiddenAt = null;
+let tutorialOpenedAt = null;
 const BOT_TURN_DELAY_MS = 1080;
 
 ui.applySetup(loadSetup() ?? undefined);
@@ -31,6 +32,7 @@ ui.bind({
     match.startMatch(playerCount, playerName);
     saveSetup({ playerCount, playerName });
     persistMatch();
+    ui.startTutorialIfNeeded();
     scheduleAutomation();
   },
   setupChanged(setup) {
@@ -78,6 +80,18 @@ ui.bind({
   menuClosed() {
     scheduleAutomation();
   },
+  tutorialOpened() {
+    tutorialOpenedAt = performance.now();
+    clearBotTimer();
+  },
+  tutorialClosed() {
+    if (tutorialOpenedAt !== null && match.phase === "preview") {
+      match.previewEndsAt += performance.now() - tutorialOpenedAt;
+    }
+    tutorialOpenedAt = null;
+    persistMatch();
+    scheduleAutomation();
+  },
   resetMatch() {
     if (!window.confirm("Apagar esta partida e voltar para a tela inicial?")) return;
     clearBotTimer();
@@ -117,7 +131,11 @@ canvas.addEventListener("mouseleave", () => {
 });
 
 function loop(now) {
-  if (match.phase === "preview" && now >= match.previewEndsAt) {
+  if (
+    match.phase === "preview" &&
+    !ui.isTutorialOpen() &&
+    now >= match.previewEndsAt
+  ) {
     match.completePreview();
     persistMatch();
     scheduleAutomation();
@@ -130,7 +148,12 @@ function loop(now) {
 
 function scheduleAutomation() {
   clearBotTimer();
-  if (match.phase !== "botTurn" || document.hidden || ui.isMenuOpen()) return;
+  if (
+    match.phase !== "botTurn" ||
+    document.hidden ||
+    ui.isMenuOpen() ||
+    ui.isTutorialOpen()
+  ) return;
   botTimer = window.setTimeout(() => {
     match.runBotTurn();
     persistMatch();
@@ -182,6 +205,7 @@ if (restoreMatch(match)) {
   saveSetup(ui.getSetup());
   persistMatch();
   ui.showResumeNotice();
+  ui.startTutorialIfNeeded();
   scheduleAutomation();
 }
 
