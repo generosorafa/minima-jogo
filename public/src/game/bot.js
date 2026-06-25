@@ -38,6 +38,9 @@ export function chooseBotMove(match, player) {
       activeCount: context.activeCount,
       nearElimination: context.nearElimination,
       source,
+      actionType: action.type,
+      targetSlot: action.type === "swap" ? action.slotIndex : null,
+      shouldStop: stopDecision.shouldStop,
       sourceReason: shouldTakeDiscard
         ? discardTarget.reason
         : "baralho fechado: morto nao melhora a mao",

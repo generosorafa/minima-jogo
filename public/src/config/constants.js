@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.7.0-beta.1";
+export const APP_VERSION = "0.7.1-beta.1";
 
 export const GAME_CONFIG = Object.freeze({
   eliminationScore: 50,
@@ -76,26 +76,26 @@ export const BOT_PROFILES = Object.freeze([
   {
     name: "Davi",
     style: "arriscado",
-    stopAt: 8,
-    survivalStopAt: 11,
+    stopAt: 6,
+    survivalStopAt: 9,
     lotteryAt: 5,
     survivalLotteryBonus: 1,
     duelStopBonus: 2,
     unknownValue: 6,
-    unknownRiskPenalty: 0.3,
+    unknownRiskPenalty: 0.6,
     minKnownToStop: 2,
     aggression: 0.82,
   },
   {
     name: "Eva",
     style: "sobrevivente",
-    stopAt: 6,
-    survivalStopAt: 12,
-    lotteryAt: 3,
+    stopAt: 5,
+    survivalStopAt: 10,
+    lotteryAt: 2,
     survivalLotteryBonus: 2,
     duelStopBonus: 1,
     unknownValue: 6,
-    unknownRiskPenalty: 0.8,
+    unknownRiskPenalty: 1.2,
     minKnownToStop: 2,
     aggression: 0.56,
   },

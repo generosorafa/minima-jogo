@@ -21,7 +21,8 @@ const PHASES = Object.freeze({
 const MATCH_STATE_VERSION = 1;
 
 export class Match {
-  constructor() {
+  constructor({ randomInt = null } = {}) {
+    this.randomInt = typeof randomInt === "function" ? randomInt : null;
     this.reset();
   }
 
@@ -76,7 +77,7 @@ export class Match {
     this.lastBotDecision = null;
     const activeCount = this.players.filter((player) => player.active).length;
     const deckCount = activeCount <= GAME_CONFIG.maxPlayersOneDeck ? 1 : 2;
-    this.stock = shuffle(createDeck(deckCount));
+    this.stock = shuffle(createDeck(deckCount), this.randomInt ?? undefined);
     this.discardPile = [];
 
     for (const player of this.players) {
@@ -356,7 +357,7 @@ export class Match {
 
   recycleDiscardIntoStock() {
     const topDiscard = this.discardPile.pop();
-    this.stock = shuffle(this.discardPile);
+    this.stock = shuffle(this.discardPile, this.randomInt ?? undefined);
     this.discardPile = topDiscard ? [topDiscard] : [];
     this.pushEvent("Morto reciclado no baralho.");
   }

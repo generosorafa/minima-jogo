@@ -21,10 +21,10 @@ export function createDeck(deckCount = 1) {
   return deck;
 }
 
-export function shuffle(deck) {
+export function shuffle(deck, randomInt = secureRandomInt) {
   const cards = deck.slice();
   for (let index = cards.length - 1; index > 0; index -= 1) {
-    const swapIndex = secureRandomInt(index + 1);
+    const swapIndex = randomInt(index + 1);
     [cards[index], cards[swapIndex]] = [cards[swapIndex], cards[index]];
   }
   return cards;
