@@ -80,10 +80,14 @@ export class DomUi {
       this.syncSetup("side");
       actions.setupChanged?.(this.getSetup());
     });
+    this.refs.playerName.addEventListener("focus", (event) => event.currentTarget.select());
     this.refs.tablePlayerName.addEventListener("input", () => {
       this.syncSetup("table");
       actions.setupChanged?.(this.getSetup());
     });
+    this.refs.tablePlayerName.addEventListener("focus", (event) =>
+      event.currentTarget.select(),
+    );
     this.refs.playerCount.addEventListener("change", () => {
       this.syncSetup("side");
       actions.setupChanged?.(this.getSetup());
@@ -162,6 +166,12 @@ export class DomUi {
 
   applyFeedbackPreference(enabled) {
     this.refs.feedbackToggle.checked = Boolean(enabled);
+  }
+
+  showMatchSetup() {
+    this.closeMenu();
+    this.resetStopConfirmation();
+    this.refs.startOverlay.hidden = false;
   }
 
   isRoundOverlayVisible() {

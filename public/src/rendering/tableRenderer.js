@@ -1,4 +1,4 @@
-import { cardValue, shortCard } from "../core/rules.js";
+import { shortCard } from "../core/rules.js";
 import { CardArt, CARD_ART_RATIO } from "./cardArt.js";
 
 const CARD_RATIO = CARD_ART_RATIO;
@@ -209,16 +209,16 @@ export class TableRenderer {
       } else if (revealAll) {
         const progress = revealProgressForSlot(state, now, playerIndex, slot);
         if (progress <= 0) {
-          this.drawCardBack(ctx, x, y, cardW, cardH, slot === 1 ? "?" : "");
+          this.drawCardBack(ctx, x, y, cardW, cardH);
         } else if (progress < 1) {
-          this.drawRevealingCard(ctx, x, y, cardW, cardH, card, progress, slot === 1 ? "?" : "", player.isHuman);
+          this.drawRevealingCard(ctx, x, y, cardW, cardH, card, progress, "", player.isHuman);
         } else {
           this.drawCardFace(ctx, x, y, cardW, cardH, card, true);
         }
       } else if (isPreview && (slot === 0 || slot === 2)) {
         this.drawCardFace(ctx, x, y, cardW, cardH, card, player.isHuman);
       } else {
-        this.drawCardBack(ctx, x, y, cardW, cardH, slot === 1 ? "?" : "");
+        this.drawCardBack(ctx, x, y, cardW, cardH);
       }
       if (player.isHuman && state.phase === "humanAction") {
         const pulse = wave(now + slot * 90, 560);
@@ -390,7 +390,7 @@ export class TableRenderer {
     drawCardShadow(ctx, x, y, w, h, active);
     if (this.cardArt.drawBack(ctx, x, y, w, h)) {
       drawArtCardBorder(ctx, x, y, w, h);
-      drawBackTag(ctx, tag || "M", x + w / 2, y + h / 2, w);
+      if (tag) drawBackTag(ctx, tag, x + w / 2, y + h / 2, w);
       return;
     }
     roundedRect(ctx, x, y, w, h, 8);
@@ -433,18 +433,19 @@ export class TableRenderer {
     ctx.strokeStyle = "rgba(255, 236, 190, 0.38)";
     ctx.stroke();
 
-    ctx.fillStyle = "#ffe5b0";
-    ctx.font = `900 ${clamp(w * 0.22, 9, 16)}px Inter, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(tag || "M", x + w / 2, y + h / 2);
+    if (tag) {
+      ctx.fillStyle = "#ffe5b0";
+      ctx.font = `900 ${clamp(w * 0.22, 9, 16)}px Inter, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(tag, x + w / 2, y + h / 2);
+    }
   }
 
   drawCardFace(ctx, x, y, w, h, card, highContrast, active = false) {
     drawCardShadow(ctx, x, y, w, h, active);
     if (this.cardArt.drawFace(ctx, card, x, y, w, h)) {
       drawArtCardBorder(ctx, x, y, w, h);
-      drawPointBadge(ctx, card, x, y, w, h, highContrast);
       return;
     }
     roundedRect(ctx, x, y, w, h, 8);
@@ -465,9 +466,7 @@ export class TableRenderer {
       ctx.font = `900 ${clamp(w * 0.34, 9, 13)}px Inter, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(shortCard(card), x + w / 2, y + h * 0.43);
-      ctx.font = `800 ${clamp(w * 0.18, 7, 10)}px Inter, sans-serif`;
-      ctx.fillText(`${cardValue(card)}`, x + w / 2, y + h * 0.68);
+      ctx.fillText(shortCard(card), x + w / 2, y + h * 0.5);
       return;
     }
 
@@ -489,14 +488,6 @@ export class TableRenderer {
     ctx.textBaseline = "middle";
     ctx.fillText(rankText(card), x + w / 2, y + h * 0.42);
 
-    ctx.font = `900 ${clamp(w * 0.17, 8, 12)}px Inter, sans-serif`;
-    const valueText = `${cardValue(card)} pts`;
-    const capsuleW = Math.max(w * 0.54, ctx.measureText(valueText).width + 10);
-    roundedRect(ctx, x + w / 2 - capsuleW / 2, y + h * 0.64, capsuleW, h * 0.16, 999);
-    ctx.fillStyle = "rgba(78, 59, 36, 0.12)";
-    ctx.fill();
-    ctx.fillStyle = highContrast ? "#4b351b" : "#6a5943";
-    ctx.fillText(valueText, x + w / 2, y + h * 0.72);
   }
 }
 
@@ -755,46 +746,9 @@ function drawBackTag(ctx, text, x, y, w) {
   ctx.restore();
 }
 
-function drawPointBadge(ctx, card, x, y, w, h, highContrast) {
-  const valueText = `${cardValue(card)} pts`;
-  ctx.save();
-  ctx.font = `900 ${clamp(w * 0.16, 7, 12)}px Inter, sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const badgeWidth = Math.max(w * 0.46, ctx.measureText(valueText).width + 8);
-  const badgeHeight = clamp(h * 0.13, 13, 22);
-  const badgeY = y + h * 0.73;
-  roundedRect(
-    ctx,
-    x + w / 2 - badgeWidth / 2,
-    badgeY,
-    badgeWidth,
-    badgeHeight,
-    999,
-  );
-  ctx.fillStyle = highContrast
-    ? "rgba(255, 248, 230, 0.9)"
-    : "rgba(255, 248, 230, 0.78)";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(45, 35, 26, 0.2)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillStyle = "#33271d";
-  ctx.fillText(valueText, x + w / 2, badgeY + badgeHeight / 2);
-  ctx.restore();
-}
-
 function drawLabel(ctx, text, x, y) {
   ctx.fillStyle = "rgba(244, 239, 227, 0.82)";
   ctx.font = "800 13px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, x, y);
-}
-
-function drawSmallValue(ctx, text, x, y) {
-  ctx.fillStyle = "#0f1718";
-  ctx.font = "900 12px Inter, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, x, y);

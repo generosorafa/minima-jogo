@@ -78,12 +78,14 @@ ui.bind({
     if (match.phase === "matchOver") {
       const humanName = match.players.find((player) => player.isHuman)?.name ?? "Voce";
       const playerCount = match.players.length || 4;
-      match.startMatch(playerCount, humanName);
+      match.reset();
+      ui.applySetup({ playerName: humanName, playerCount });
+      ui.showMatchSetup();
     } else {
       match.startRound();
+      feedback.play("start");
     }
     announcedResultKey = null;
-    feedback.play("start");
     persistMatch();
     scheduleAutomation();
   },
@@ -115,6 +117,7 @@ ui.bind({
     announcedResultKey = null;
     persistMatch();
     ui.closeMenu();
+    ui.showMatchSetup();
   },
 });
 
