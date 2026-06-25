@@ -72,7 +72,13 @@ export class DomUi {
 
   bind(actions) {
     this.actions = actions;
-    this.refs.startMatchButton.addEventListener("click", () => this.startMatch(actions));
+    this.refs.startMatchButton.addEventListener("click", () => {
+      if (this.match.phase !== "idle") {
+        actions.resetMatch();
+        return;
+      }
+      this.startMatch(actions);
+    });
     this.refs.tableStartMatchButton.addEventListener("click", () =>
       this.startMatch(actions, true),
     );
