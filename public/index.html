@@ -13,6 +13,7 @@
     <meta name="theme-color" content="#082b24" />
     <meta name="color-scheme" content="dark" />
     <meta name="application-name" content="Mínima" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Mínima" />
@@ -38,12 +39,24 @@
           <div class="start-card">
             <div class="start-heading">
               <img src="./assets/app-icon.svg" alt="" width="52" height="52" />
-              <p class="eyebrow">Beta de testes</p>
+              <div>
+                <p class="eyebrow">Beta de testes</p>
+                <strong>Jogo em familia</strong>
+              </div>
             </div>
             <h1>Mínima</h1>
             <p class="start-rule">
               Memorize. Arrisque. Faça menos. 50 pontos elimina.
             </p>
+            <div class="start-highlights" aria-label="Resumo das regras">
+              <span>2-6 jogadores</span>
+              <span>1 baralho</span>
+              <span>Menor mão vence</span>
+            </div>
+            <div class="start-note">
+              <strong>Seu objetivo</strong>
+              <span>Peça para parar quando achar que sua mão é a menor da mesa.</span>
+            </div>
             <div class="start-fields">
               <label class="setup-field" for="tablePlayerName">
                 <span>Nome</span>
@@ -68,7 +81,7 @@
               </label>
             </div>
             <button id="tableStartMatchButton" type="button">Iniciar partida</button>
-            <small class="version-label">Versao <span data-app-version></span></small>
+            <small class="version-label">Versão <span data-app-version></span></small>
           </div>
         </section>
         <button
@@ -155,6 +168,7 @@
           <div class="round-card">
             <p class="round-kicker">Fim da rodada</p>
             <h2 id="roundOverlayTitle">Rodada encerrada</h2>
+            <p class="round-summary" id="roundOverlaySummary"></p>
             <div class="round-table" id="roundScoreRows"></div>
             <button id="nextRoundButton" type="button">Proxima rodada</button>
           </div>

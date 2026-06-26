@@ -6,10 +6,20 @@
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "display": "standalone",
   "orientation": "any",
   "background_color": "#061c18",
   "theme_color": "#082b24",
+  "categories": ["games", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Jogar agora",
+      "short_name": "Jogar",
+      "description": "Abrir Mínima direto na mesa.",
+      "url": "./"
+    }
+  ],
   "icons": [
     {
       "src": "./assets/app-icon.svg",

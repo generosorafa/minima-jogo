@@ -119,12 +119,14 @@ input {
 
 .start-card {
   display: grid;
-  gap: 16px;
-  width: min(420px, 100%);
+  gap: 15px;
+  width: min(460px, 100%);
   border: 1px solid rgba(244, 239, 227, 0.18);
   border-radius: 8px;
-  background: rgba(7, 20, 18, 0.86);
-  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(20, 55, 47, 0.92), rgba(6, 18, 16, 0.94)),
+    rgba(7, 20, 18, 0.9);
+  padding: 24px;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.38);
   backdrop-filter: blur(12px);
   pointer-events: auto;
@@ -144,6 +146,17 @@ input {
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
 }
 
+.start-heading > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.start-heading strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
 .start-card h1 {
   margin: -8px 0 0;
   color: var(--ink);
@@ -160,8 +173,46 @@ input {
 
 .start-rule {
   margin: 0;
-  color: var(--muted);
-  font-size: 14px;
+  color: #dce5df;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.start-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.start-highlights span {
+  min-height: 28px;
+  border: 1px solid rgba(215, 179, 90, 0.28);
+  border-radius: 999px;
+  background: rgba(215, 179, 90, 0.12);
+  color: #f6dfa3;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.start-note {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(244, 239, 227, 0.12);
+  border-radius: 8px;
+  background: rgba(3, 12, 11, 0.36);
+  padding: 11px 12px;
+}
+
+.start-note strong {
+  color: var(--gold);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.start-note span {
+  color: #d2d9d5;
+  font-size: 13px;
   line-height: 1.35;
 }
 
@@ -452,8 +503,8 @@ input {
 
 .round-card {
   display: grid;
-  gap: 18px;
-  width: min(560px, 100%);
+  gap: 16px;
+  width: min(720px, 100%);
   border: 1px solid rgba(244, 239, 227, 0.18);
   border-radius: 8px;
   background: rgba(6, 18, 16, 0.9);
@@ -485,6 +536,13 @@ input {
   letter-spacing: 0;
 }
 
+.round-summary {
+  margin: -8px 0 0;
+  color: #d2d9d5;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .round-table {
   display: grid;
   gap: 0;
@@ -495,10 +553,10 @@ input {
 
 .round-score-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) 74px 70px 82px;
+  grid-template-columns: minmax(0, 1.15fr) 126px 54px 58px 78px;
   gap: 10px;
   align-items: center;
-  min-height: 42px;
+  min-height: 50px;
   border-bottom: 1px solid rgba(244, 239, 227, 0.08);
   color: var(--ink);
   font-size: 14px;
@@ -544,6 +602,34 @@ input {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.round-hand {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
+.round-hand-card {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 48px;
+  border: 1px solid #d8cdae;
+  border-radius: 6px;
+  background: #f4ead6;
+  color: #171d1e;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+}
+
+.round-hand-card.is-red {
+  color: #b82e38;
+}
+
+.round-hand-value {
+  font-weight: 900;
 }
 
 .round-badge {
@@ -907,6 +993,7 @@ body[data-phase="idle"] .start-overlay {
     height: 100dvh;
     min-height: 560px;
     border-radius: 0;
+    padding-top: env(safe-area-inset-top);
   }
 
   .control-panel {
@@ -918,9 +1005,28 @@ body[data-phase="idle"] .start-overlay {
 
   .start-card {
     align-self: center;
-    width: min(340px, calc(100vw - 28px));
-    gap: 14px;
+    width: min(360px, calc(100vw - 28px));
+    gap: 12px;
     padding: 18px;
+  }
+
+  .start-card h1 {
+    font-size: 34px;
+  }
+
+  .start-heading img {
+    width: 46px;
+    height: 46px;
+  }
+
+  .start-highlights span {
+    min-height: 26px;
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .start-note {
+    padding: 9px 10px;
   }
 
   .start-fields {
@@ -1030,19 +1136,42 @@ body[data-phase="idle"] .start-overlay {
 
   .round-card {
     gap: 14px;
-    padding: 18px;
+    max-height: calc(100dvh - 28px);
+    overflow: auto;
+    padding: 17px;
   }
 
   .round-score-row {
-    grid-template-columns: minmax(0, 1.2fr) 56px 52px 66px;
-    gap: 7px;
-    min-height: 38px;
+    grid-template-columns: minmax(58px, 0.95fr) 86px 34px 38px 50px;
+    gap: 5px;
+    min-height: 44px;
     font-size: 12px;
   }
 
   .round-score-row.is-header {
     min-height: 30px;
-    font-size: 10px;
+    font-size: 9px;
+  }
+
+  .round-summary {
+    font-size: 12px;
+  }
+
+  .round-hand {
+    gap: 3px;
+  }
+
+  .round-hand-card {
+    width: 26px;
+    height: 36px;
+    border-radius: 5px;
+    font-size: 8px;
+  }
+
+  .round-badge {
+    min-height: 16px;
+    padding: 0 5px;
+    font-size: 8px;
   }
 
   body[data-phase="idle"] .table-top-hud,

@@ -641,7 +641,7 @@ function playerPositions(count, width, height) {
     const x = playRight * (spreadStart + (index * spread) / Math.max(1, topSlots - 1));
     positions.push({
       x,
-      y: isTallMobile ? 104 : isNarrow ? 76 : 58,
+      y: isTallMobile ? 132 : isNarrow ? 96 : 58,
       cardW,
       gap: isNarrow ? 4 : 7,
     });

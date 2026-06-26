@@ -1,4 +1,4 @@
-import { formatCard, cardValue } from "../core/rules.js";
+import { formatCard, cardValue, shortCard } from "../core/rules.js";
 import { APP_VERSION } from "../config/constants.js";
 import {
   hasSeenTutorial,
@@ -54,6 +54,7 @@ export class DomUi {
       roundOverlay: document.querySelector(".round-overlay"),
       roundKicker: document.querySelector(".round-kicker"),
       roundOverlayTitle: document.querySelector("#roundOverlayTitle"),
+      roundOverlaySummary: document.querySelector("#roundOverlaySummary"),
       roundScoreRows: document.querySelector("#roundScoreRows"),
       nextRoundButton: document.querySelector("#nextRoundButton"),
       scoreboard: document.querySelector("#scoreboard"),
@@ -412,6 +413,7 @@ export class DomUi {
     this.refs.roundOverlay.dataset.kind = state.phase === "matchOver" ? "match" : "round";
     this.refs.roundKicker.textContent = roundOverlayKicker(state);
     this.refs.roundOverlayTitle.textContent = roundOverlayTitle(state);
+    this.refs.roundOverlaySummary.textContent = roundOverlaySummary(state);
     const playedPlayers = state.players.filter(
       (player) => player.lastHandValue !== null || state.roundResult.handScores.has(player.id),
     );
@@ -481,10 +483,17 @@ function roundOverlayKicker(state) {
   return hasEliminated ? "Fim da rodada - eliminado" : "Fim da rodada";
 }
 
+function roundOverlaySummary(state) {
+  if (state.phase === "matchOver") {
+    return "Partida encerrada. Confira a última mão e o total final.";
+  }
+  return state.roundResult?.message ?? "Confira as mãos, os pontos da rodada e o total.";
+}
+
 function createRoundHeader() {
   const header = document.createElement("div");
   header.className = "round-score-row is-header";
-  ["Jogador", "Mao", "+Pts", "Total"].forEach((label) => {
+  ["Jogador", "Cartas", "Mão", "+Pts", "Total"].forEach((label) => {
     const cell = document.createElement("span");
     cell.textContent = label;
     header.append(cell);
@@ -516,7 +525,12 @@ function createRoundRow(player, state) {
   }
 
   const hand = document.createElement("span");
-  hand.textContent = `${player.lastHandValue ?? state.roundResult.handScores.get(player.id) ?? 0} pts`;
+  hand.className = "round-hand-value";
+  hand.textContent = `${player.lastHandValue ?? state.roundResult.handScores.get(player.id) ?? 0}`;
+
+  const cards = document.createElement("span");
+  cards.className = "round-hand";
+  player.hand.forEach((card) => cards.append(createRoundCard(card)));
 
   const deltaValue = player.lastDelta ?? state.roundResult.deltas.get(player.id) ?? 0;
   const delta = document.createElement("span");
@@ -527,6 +541,18 @@ function createRoundRow(player, state) {
   total.className = player.score >= 40 ? "round-total is-danger" : "round-total";
   total.textContent = `${player.score} pts`;
 
-  row.append(name, hand, delta, total);
+  row.append(name, cards, hand, delta, total);
   return row;
+}
+
+function createRoundCard(card) {
+  const node = document.createElement("span");
+  node.className = `round-hand-card${isRedCard(card) ? " is-red" : ""}`;
+  node.textContent = shortCard(card);
+  node.title = `${formatCard(card)} - ${cardValue(card)} pts`;
+  return node;
+}
+
+function isRedCard(card) {
+  return card?.suit === "H" || card?.suit === "D";
 }

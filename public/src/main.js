@@ -20,6 +20,7 @@ let tutorialOpenedAt = null;
 let announcedResultKey = null;
 const BOT_TURN_DELAY_MS = 1080;
 
+registerServiceWorker();
 ui.applySetup(loadSetup() ?? undefined);
 ui.applyFeedbackPreference(feedback.isEnabled());
 
@@ -247,3 +248,10 @@ if (restoreMatch(match)) {
 }
 
 requestAnimationFrame(loop);
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
