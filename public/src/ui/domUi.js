@@ -21,13 +21,27 @@ export class DomUi {
       tablePlayerName: document.querySelector("#tablePlayerName"),
       tablePlayerCount: document.querySelector("#tablePlayerCount"),
       tableStartMatchButton: document.querySelector("#tableStartMatchButton"),
+      savedMatchPanel: document.querySelector("#savedMatchPanel"),
+      savedMatchTitle: document.querySelector("#savedMatchTitle"),
+      savedMatchMeta: document.querySelector("#savedMatchMeta"),
+      continueSavedMatchButton: document.querySelector("#continueSavedMatchButton"),
+      startRulesButton: document.querySelector("#startRulesButton"),
       mobileMenuButton: document.querySelector("#mobileMenuButton"),
       betaMenu: document.querySelector("#betaMenu"),
       betaMenuBackdrop: document.querySelector("#betaMenuBackdrop"),
       continueMatchButton: document.querySelector("#continueMatchButton"),
+      menuRulesButton: document.querySelector("#menuRulesButton"),
       tutorialButton: document.querySelector("#tutorialButton"),
       feedbackToggle: document.querySelector("#feedbackToggle"),
       resetMatchButton: document.querySelector("#resetMatchButton"),
+      rulesOverlay: document.querySelector("#rulesOverlay"),
+      closeRulesButton: document.querySelector("#closeRulesButton"),
+      confirmOverlay: document.querySelector("#confirmOverlay"),
+      confirmKicker: document.querySelector("#confirmKicker"),
+      confirmTitle: document.querySelector("#confirmTitle"),
+      confirmText: document.querySelector("#confirmText"),
+      confirmCancelButton: document.querySelector("#confirmCancelButton"),
+      confirmAcceptButton: document.querySelector("#confirmAcceptButton"),
       tutorialOverlay: document.querySelector("#tutorialOverlay"),
       tutorialCard: document.querySelector(".tutorial-card"),
       tutorialKicker: document.querySelector("#tutorialKicker"),
@@ -55,6 +69,7 @@ export class DomUi {
       roundKicker: document.querySelector(".round-kicker"),
       roundOverlayTitle: document.querySelector("#roundOverlayTitle"),
       roundOverlaySummary: document.querySelector("#roundOverlaySummary"),
+      roundHighlights: document.querySelector("#roundHighlights"),
       roundScoreRows: document.querySelector("#roundScoreRows"),
       nextRoundButton: document.querySelector("#nextRoundButton"),
       scoreboard: document.querySelector("#scoreboard"),
@@ -66,6 +81,7 @@ export class DomUi {
     this.resumeNoticeTimer = null;
     this.stopConfirmationTimer = null;
     this.stopConfirmationPending = false;
+    this.confirmResolver = null;
     this.tutorialStep = 0;
     this.tutorialActive = false;
     this.actions = null;
@@ -83,6 +99,8 @@ export class DomUi {
     this.refs.tableStartMatchButton.addEventListener("click", () =>
       this.startMatch(actions, true),
     );
+    this.refs.continueSavedMatchButton.addEventListener("click", actions.continueSavedMatch);
+    this.refs.startRulesButton.addEventListener("click", () => this.openRules());
     this.refs.playerName.addEventListener("input", () => {
       this.syncSetup("side");
       actions.setupChanged?.(this.getSetup());
@@ -118,6 +136,11 @@ export class DomUi {
       this.closeMenu();
       actions.menuClosed?.();
     });
+    this.refs.menuRulesButton.addEventListener("click", () => {
+      this.closeMenu();
+      actions.menuClosed?.();
+      this.openRules();
+    });
     this.refs.tutorialButton.addEventListener("click", () => {
       this.closeMenu();
       actions.menuClosed?.();
@@ -131,6 +154,13 @@ export class DomUi {
     );
     this.refs.tutorialNextButton.addEventListener("click", () =>
       this.advanceTutorial(),
+    );
+    this.refs.closeRulesButton.addEventListener("click", () => this.closeRules());
+    this.refs.confirmCancelButton.addEventListener("click", () =>
+      this.resolveConfirm(false),
+    );
+    this.refs.confirmAcceptButton.addEventListener("click", () =>
+      this.resolveConfirm(true),
     );
     this.refs.resetMatchButton.addEventListener("click", actions.resetMatch);
   }
@@ -174,6 +204,24 @@ export class DomUi {
     this.refs.feedbackToggle.checked = Boolean(enabled);
   }
 
+  showSavedMatch(summary) {
+    if (!summary) {
+      this.refs.savedMatchPanel.hidden = true;
+      this.refs.tableStartMatchButton.textContent = "Iniciar partida";
+      return;
+    }
+    this.refs.savedMatchPanel.hidden = false;
+    this.refs.tableStartMatchButton.textContent = "Nova partida";
+    this.refs.savedMatchTitle.textContent = `Continuar com ${summary.humanName}`;
+    this.refs.savedMatchMeta.textContent =
+      `Rodada ${summary.roundNumber} · ${summary.activeCount}/${summary.playerCount} ativos · ${summary.humanScore}/50 pts`;
+  }
+
+  hideSavedMatch() {
+    this.refs.savedMatchPanel.hidden = true;
+    this.refs.tableStartMatchButton.textContent = "Iniciar partida";
+  }
+
   showMatchSetup() {
     this.closeMenu();
     this.resetStopConfirmation();
@@ -197,6 +245,62 @@ export class DomUi {
 
   isMenuOpen() {
     return !this.refs.betaMenu.hidden;
+  }
+
+  openRules() {
+    this.resetStopConfirmation();
+    this.refs.rulesOverlay.hidden = false;
+    document.body.dataset.rulesOpen = "true";
+    this.refs.closeRulesButton.focus({ preventScroll: true });
+    this.actions?.modalOpened?.();
+  }
+
+  closeRules() {
+    this.refs.rulesOverlay.hidden = true;
+    delete document.body.dataset.rulesOpen;
+    this.actions?.modalClosed?.();
+  }
+
+  isRulesOpen() {
+    return !this.refs.rulesOverlay.hidden;
+  }
+
+  confirmAction({
+    kicker = "Confirmar",
+    title = "Confirmar ação",
+    text = "Esta ação não pode ser desfeita.",
+    acceptLabel = "Confirmar",
+    cancelLabel = "Cancelar",
+    danger = false,
+  } = {}) {
+    this.resolveConfirm(false);
+    this.resetStopConfirmation();
+    this.refs.confirmKicker.textContent = kicker;
+    this.refs.confirmTitle.textContent = title;
+    this.refs.confirmText.textContent = text;
+    this.refs.confirmAcceptButton.textContent = acceptLabel;
+    this.refs.confirmCancelButton.textContent = cancelLabel;
+    this.refs.confirmAcceptButton.classList.toggle("is-danger", danger);
+    this.refs.confirmOverlay.hidden = false;
+    document.body.dataset.confirmOpen = "true";
+    this.refs.confirmCancelButton.focus({ preventScroll: true });
+    this.actions?.modalOpened?.();
+    return new Promise((resolve) => {
+      this.confirmResolver = resolve;
+    });
+  }
+
+  resolveConfirm(accepted) {
+    const resolver = this.confirmResolver;
+    this.confirmResolver = null;
+    this.refs.confirmOverlay.hidden = true;
+    delete document.body.dataset.confirmOpen;
+    this.actions?.modalClosed?.();
+    resolver?.(accepted);
+  }
+
+  isConfirmOpen() {
+    return !this.refs.confirmOverlay.hidden;
   }
 
   startTutorialIfNeeded() {
@@ -413,6 +517,7 @@ export class DomUi {
     this.refs.roundKicker.textContent = roundOverlayKicker(state);
     this.refs.roundOverlayTitle.textContent = roundOverlayTitle(state);
     this.refs.roundOverlaySummary.textContent = roundOverlaySummary(state);
+    this.refs.roundHighlights.replaceChildren(...createRoundHighlights(state));
     const playedPlayers = state.players.filter(
       (player) => player.lastHandValue !== null || state.roundResult.handScores.has(player.id),
     );
@@ -500,14 +605,48 @@ function createRoundHeader() {
   return header;
 }
 
+function createRoundHighlights(state) {
+  if (!state.roundResult) return [];
+  const stopper = state.players.find((player) => player.id === state.roundResult.stopperId);
+  const lowestPlayers = lowestHandPlayers(state);
+  const eliminated = state.players.filter(
+    (player) => !player.active && player.lastDelta !== null,
+  );
+  const highlights = [
+    createHighlight(`Parou: ${stopper?.name ?? "Jogador"}`, state.roundResult.success ? "is-good" : "is-bad"),
+    createHighlight(
+      `Menor mão: ${lowestPlayers.map((player) => player.name).join(", ")}`,
+      "is-gold",
+    ),
+  ];
+  if (eliminated.length) {
+    highlights.push(createHighlight(`Eliminado: ${eliminated.map((player) => player.name).join(", ")}`, "is-bad"));
+  }
+  if (state.phase === "matchOver" && state.winner) {
+    highlights.push(createHighlight(`Vencedor: ${state.winner.name}`, "is-good"));
+  }
+  return highlights;
+}
+
+function createHighlight(text, kind = "") {
+  const node = document.createElement("span");
+  node.className = ["round-highlight", kind].filter(Boolean).join(" ");
+  node.textContent = text;
+  return node;
+}
+
 function createRoundRow(player, state) {
   const row = document.createElement("div");
   const isStopper = player.id === state.roundResult.stopperId;
+  const isFailedStopper = isStopper && !state.roundResult.success;
+  const isLowest = lowestHandPlayers(state).some((lowest) => lowest.id === player.id);
   const isWinner = state.phase === "matchOver" && player.id === state.winner?.id;
   const wasEliminated = !player.active && player.lastDelta !== null;
   row.className = [
     "round-score-row",
     isStopper ? "is-stopper" : "",
+    isFailedStopper ? "is-failed-stopper" : "",
+    isLowest ? "is-lowest" : "",
     isWinner ? "is-winner" : "",
     wasEliminated ? "is-eliminated" : "",
     player.active ? "" : "is-out",
@@ -520,6 +659,18 @@ function createRoundRow(player, state) {
     const badge = document.createElement("em");
     badge.className = isWinner ? "round-badge is-winner" : "round-badge is-eliminated";
     badge.textContent = isWinner ? "Vencedor" : "Eliminado";
+    name.append(" ", badge);
+  }
+  if (isStopper) {
+    const badge = document.createElement("em");
+    badge.className = state.roundResult.success ? "round-badge is-winner" : "round-badge is-eliminated";
+    badge.textContent = "Parou";
+    name.append(" ", badge);
+  }
+  if (isLowest) {
+    const badge = document.createElement("em");
+    badge.className = "round-badge is-winner";
+    badge.textContent = "Menor";
     name.append(" ", badge);
   }
 
@@ -542,6 +693,14 @@ function createRoundRow(player, state) {
 
   row.append(name, cards, hand, delta, total);
   return row;
+}
+
+function lowestHandPlayers(state) {
+  if (!state.roundResult) return [];
+  const played = state.players.filter((player) => state.roundResult.handScores.has(player.id));
+  const values = played.map((player) => state.roundResult.handScores.get(player.id) ?? 0);
+  const lowest = Math.min(...values);
+  return played.filter((player) => (state.roundResult.handScores.get(player.id) ?? 0) === lowest);
 }
 
 function createRoundCard(card) {

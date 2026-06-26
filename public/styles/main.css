@@ -216,10 +216,50 @@ input {
   line-height: 1.35;
 }
 
+.saved-match-panel {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(116, 198, 157, 0.34);
+  border-radius: 8px;
+  background: rgba(27, 86, 63, 0.26);
+  padding: 12px;
+}
+
+.saved-match-panel > span {
+  color: var(--ok);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.saved-match-panel strong {
+  font-size: 17px;
+}
+
+.saved-match-panel p {
+  margin: 0;
+  color: #d2d9d5;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.saved-match-panel button {
+  min-height: 42px;
+  border-color: rgba(116, 198, 157, 0.54);
+  background: rgba(37, 111, 82, 0.88);
+  color: #effaf3;
+  font-weight: 900;
+}
+
 .start-fields {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 110px;
   gap: 10px;
+}
+
+.start-actions {
+  display: grid;
+  gap: 9px;
 }
 
 #tableStartMatchButton {
@@ -233,6 +273,12 @@ input {
 
 #tableStartMatchButton:hover:not(:disabled) {
   background: #eda33e;
+}
+
+.secondary-button {
+  min-height: 42px;
+  background: rgba(17, 26, 27, 0.74);
+  color: #e2e8e5;
 }
 
 .table-action-bar {
@@ -384,7 +430,9 @@ input {
   outline-offset: 2px;
 }
 
-.tutorial-overlay {
+.tutorial-overlay,
+.rules-overlay,
+.confirm-overlay {
   position: absolute;
   inset: 0;
   z-index: 7;
@@ -395,7 +443,17 @@ input {
   backdrop-filter: blur(1.5px);
 }
 
-.tutorial-card {
+.rules-overlay,
+.confirm-overlay {
+  z-index: 8;
+  padding: 20px 360px 20px 20px;
+  background: rgba(1, 8, 7, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.tutorial-card,
+.rules-card,
+.confirm-card {
   display: grid;
   gap: 10px;
   width: min(390px, 100%);
@@ -406,6 +464,15 @@ input {
   box-shadow:
     0 26px 80px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(215, 179, 90, 0.1) inset;
+}
+
+.rules-card {
+  width: min(520px, 100%);
+}
+
+.confirm-card {
+  width: min(410px, 100%);
+  border-color: rgba(244, 239, 227, 0.22);
 }
 
 .tutorial-progress {
@@ -467,6 +534,88 @@ input {
 .tutorial-skip {
   background: transparent;
   color: var(--muted);
+}
+
+.rules-kicker,
+.confirm-kicker {
+  margin: 0;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rules-card h2,
+.confirm-card h2 {
+  margin: 0;
+  font-size: 27px;
+  line-height: 1.08;
+}
+
+.confirm-card > p:last-of-type {
+  margin: 0;
+  color: #d2d9d5;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.rules-list {
+  display: grid;
+  gap: 8px;
+}
+
+.rules-list p {
+  margin: 0;
+  color: #d2d9d5;
+  font-size: 14px;
+  line-height: 1.38;
+}
+
+.rules-list strong {
+  color: var(--ink);
+}
+
+.rules-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  border-top: 1px solid rgba(244, 239, 227, 0.1);
+  padding-top: 12px;
+}
+
+.rules-values span {
+  border: 1px solid rgba(215, 179, 90, 0.28);
+  border-radius: 999px;
+  background: rgba(215, 179, 90, 0.12);
+  color: #f6dfa3;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+#closeRulesButton {
+  justify-self: end;
+  min-width: 126px;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 4px;
+}
+
+#confirmAcceptButton {
+  border-color: #d49434;
+  background: #d98d2c;
+  color: #1b1208;
+  font-weight: 900;
+}
+
+#confirmAcceptButton.is-danger {
+  border-color: rgba(215, 93, 85, 0.72);
+  background: #b6423d;
+  color: #fff4ef;
 }
 
 .danger-button {
@@ -543,6 +692,43 @@ input {
   line-height: 1.35;
 }
 
+.round-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.round-highlight {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid rgba(244, 239, 227, 0.12);
+  border-radius: 999px;
+  background: rgba(244, 239, 227, 0.06);
+  color: #dbe3de;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.round-highlight.is-good {
+  border-color: rgba(116, 198, 157, 0.32);
+  background: rgba(116, 198, 157, 0.12);
+  color: #b8ebcf;
+}
+
+.round-highlight.is-bad {
+  border-color: rgba(215, 93, 85, 0.36);
+  background: rgba(215, 93, 85, 0.12);
+  color: #ffb9b3;
+}
+
+.round-highlight.is-gold {
+  border-color: rgba(215, 179, 90, 0.36);
+  background: rgba(215, 179, 90, 0.13);
+  color: #f6dfa3;
+}
+
 .round-table {
   display: grid;
   gap: 0;
@@ -578,6 +764,14 @@ input {
 .round-score-row.is-stopper .round-player {
   color: var(--gold);
   font-weight: 900;
+}
+
+.round-score-row.is-failed-stopper .round-player {
+  color: #ffaaa4;
+}
+
+.round-score-row.is-lowest {
+  background: rgba(116, 198, 157, 0.07);
 }
 
 .round-score-row.is-winner {
@@ -1029,6 +1223,10 @@ body[data-phase="idle"] .start-overlay {
     padding: 9px 10px;
   }
 
+  .saved-match-panel {
+    padding: 10px;
+  }
+
   .start-fields {
     grid-template-columns: 1fr;
   }
@@ -1106,7 +1304,9 @@ body[data-phase="idle"] .start-overlay {
     padding: 14px;
   }
 
-  .tutorial-overlay {
+  .tutorial-overlay,
+  .rules-overlay,
+  .confirm-overlay {
     align-items: start;
     padding:
       max(calc(178px + env(safe-area-inset-top)), 190px)
@@ -1115,13 +1315,27 @@ body[data-phase="idle"] .start-overlay {
     background: rgba(1, 8, 7, 0.32);
   }
 
-  .tutorial-card {
+  .rules-overlay,
+  .confirm-overlay {
+    place-items: center;
+    padding:
+      calc(14px + env(safe-area-inset-top))
+      14px
+      calc(14px + env(safe-area-inset-bottom));
+    background: rgba(1, 8, 7, 0.62);
+  }
+
+  .tutorial-card,
+  .rules-card,
+  .confirm-card {
     width: min(340px, 100%);
     gap: 9px;
     padding: 17px;
   }
 
-  .tutorial-card h2 {
+  .tutorial-card h2,
+  .rules-card h2,
+  .confirm-card h2 {
     font-size: 23px;
   }
 
@@ -1132,6 +1346,20 @@ body[data-phase="idle"] .start-overlay {
 
   .tutorial-actions {
     grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .rules-card {
+    max-height: calc(100dvh - 28px);
+    overflow: auto;
+  }
+
+  .rules-list p,
+  .confirm-card > p:last-of-type {
+    font-size: 13px;
+  }
+
+  .confirm-actions {
+    grid-template-columns: 1fr;
   }
 
   .round-card {
@@ -1155,6 +1383,16 @@ body[data-phase="idle"] .start-overlay {
 
   .round-summary {
     font-size: 12px;
+  }
+
+  .round-highlights {
+    gap: 5px;
+  }
+
+  .round-highlight {
+    min-height: 24px;
+    padding: 5px 7px;
+    font-size: 10px;
   }
 
   .round-hand {

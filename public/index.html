@@ -57,6 +57,14 @@
               <strong>Seu objetivo</strong>
               <span>Peça para parar quando achar que sua mão é a menor da mesa.</span>
             </div>
+            <div class="saved-match-panel" id="savedMatchPanel" hidden>
+              <span>Partida salva</span>
+              <strong id="savedMatchTitle">Continuar partida</strong>
+              <p id="savedMatchMeta">Rodada salva neste aparelho.</p>
+              <button id="continueSavedMatchButton" type="button">
+                Continuar partida
+              </button>
+            </div>
             <div class="start-fields">
               <label class="setup-field" for="tablePlayerName">
                 <span>Nome</span>
@@ -80,7 +88,12 @@
                 </select>
               </label>
             </div>
-            <button id="tableStartMatchButton" type="button">Iniciar partida</button>
+            <div class="start-actions">
+              <button id="tableStartMatchButton" type="button">Iniciar partida</button>
+              <button class="secondary-button" id="startRulesButton" type="button">
+                Regras rápidas
+              </button>
+            </div>
             <small class="version-label">Versão <span data-app-version></span></small>
           </div>
         </section>
@@ -122,6 +135,7 @@
               <strong>Partida em andamento</strong>
             </div>
             <button id="continueMatchButton" type="button">Continuar jogando</button>
+            <button id="menuRulesButton" type="button">Regras rápidas</button>
             <button id="tutorialButton" type="button">Como jogar</button>
             <label class="menu-setting" for="feedbackToggle">
               <span>Som e vibracao</span>
@@ -164,11 +178,59 @@
             </div>
           </div>
         </section>
+        <section
+          class="rules-overlay"
+          id="rulesOverlay"
+          aria-label="Regras rápidas"
+          aria-modal="true"
+          role="dialog"
+          hidden
+        >
+          <div class="rules-card">
+            <p class="rules-kicker">Regras rápidas</p>
+            <h2>Mínima</h2>
+            <div class="rules-list">
+              <p><strong>Objetivo</strong> terminar cada rodada com a menor mão possível.</p>
+              <p><strong>Memória</strong> você vê só as duas cartas das pontas no início.</p>
+              <p><strong>Meio</strong> a carta central é surpresa até ser trocada ou revelada.</p>
+              <p><strong>Morto</strong> só a última carta descartada pode ser comprada.</p>
+              <p><strong>Parar</strong> empate ou mão menor de outro jogador faz o pedido falhar.</p>
+              <p><strong>Eliminação</strong> quem chega a 50 pontos ou mais sai da partida.</p>
+            </div>
+            <div class="rules-values" aria-label="Valores das cartas">
+              <span>Coringa 0</span>
+              <span>J 0</span>
+              <span>A 1</span>
+              <span>Q/K 10</span>
+              <span>2-10 valor</span>
+            </div>
+            <button id="closeRulesButton" type="button">Fechar</button>
+          </div>
+        </section>
+        <section
+          class="confirm-overlay"
+          id="confirmOverlay"
+          aria-label="Confirmação"
+          aria-modal="true"
+          role="dialog"
+          hidden
+        >
+          <div class="confirm-card">
+            <p class="confirm-kicker" id="confirmKicker">Confirmar</p>
+            <h2 id="confirmTitle">Confirmar ação</h2>
+            <p id="confirmText">Esta ação não pode ser desfeita.</p>
+            <div class="confirm-actions">
+              <button id="confirmCancelButton" type="button">Cancelar</button>
+              <button id="confirmAcceptButton" type="button">Confirmar</button>
+            </div>
+          </div>
+        </section>
         <section class="round-overlay" aria-label="Placar da rodada" hidden>
           <div class="round-card">
             <p class="round-kicker">Fim da rodada</p>
             <h2 id="roundOverlayTitle">Rodada encerrada</h2>
             <p class="round-summary" id="roundOverlaySummary"></p>
+            <div class="round-highlights" id="roundHighlights"></div>
             <div class="round-table" id="roundScoreRows"></div>
             <button id="nextRoundButton" type="button">Proxima rodada</button>
           </div>

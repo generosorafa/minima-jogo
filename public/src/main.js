@@ -1,5 +1,8 @@
 import { Match } from "./game/match.js";
 import {
+  clearSavedMatch,
+  hasSavedMatch,
+  loadSavedMatchSummary,
   loadSetup,
   restoreMatch,
   saveMatch,
@@ -18,27 +21,77 @@ let botTimer = null;
 let hiddenAt = null;
 let tutorialOpenedAt = null;
 let announcedResultKey = null;
+let savedMatchAvailable = false;
 const BOT_TURN_DELAY_MS = 1080;
 
 registerServiceWorker();
 ui.applySetup(loadSetup() ?? undefined);
 ui.applyFeedbackPreference(feedback.isEnabled());
+refreshSavedMatchPrompt();
 
 ui.bind({
-  startMatch(playerCount, playerName) {
+  async startMatch(playerCount, playerName) {
     if (
       match.phase !== "idle" &&
       match.phase !== "matchOver" &&
-      !window.confirm("Comecar uma nova partida e apagar o progresso atual?")
+      !(await ui.confirmAction({
+        kicker: "Nova partida",
+        title: "Apagar a partida atual?",
+        text: "O progresso desta partida será perdido e uma nova mesa será criada.",
+        acceptLabel: "Apagar e começar",
+        danger: true,
+      }))
     ) {
       return;
     }
     clearBotTimer();
+    if (
+      savedMatchAvailable &&
+      match.phase === "idle" &&
+      !(await ui.confirmAction({
+        kicker: "Partida salva",
+        title: "Começar uma nova partida?",
+        text: "Existe uma partida salva neste aparelho. Começar outra apaga esse progresso.",
+        acceptLabel: "Nova partida",
+        danger: true,
+      }))
+    ) {
+      return;
+    }
+    clearSavedMatch();
+    savedMatchAvailable = false;
+    ui.hideSavedMatch();
     match.startMatch(playerCount, playerName);
     announcedResultKey = null;
     feedback.play("start");
     saveSetup({ playerCount, playerName });
     persistMatch();
+    ui.startTutorialIfNeeded();
+    scheduleAutomation();
+  },
+  continueSavedMatch() {
+    clearBotTimer();
+    if (!hasSavedMatch()) {
+      savedMatchAvailable = false;
+      ui.hideSavedMatch();
+      return;
+    }
+    if (!restoreMatch(match)) {
+      savedMatchAvailable = false;
+      ui.hideSavedMatch();
+      return;
+    }
+    savedMatchAvailable = false;
+    ui.hideSavedMatch();
+    const human = match.players.find((player) => player.isHuman);
+    ui.applySetup({
+      playerName: human?.name ?? "Você",
+      playerCount: match.players.length || 4,
+    });
+    saveSetup(ui.getSetup());
+    announcedResultKey = null;
+    persistMatch();
+    ui.showResumeNotice();
     ui.startTutorialIfNeeded();
     scheduleAutomation();
   },
@@ -77,10 +130,13 @@ ui.bind({
   nextRound() {
     clearBotTimer();
     if (match.phase === "matchOver") {
-      const humanName = match.players.find((player) => player.isHuman)?.name ?? "Voce";
+      const humanName = match.players.find((player) => player.isHuman)?.name ?? "Você";
       const playerCount = match.players.length || 4;
       match.reset();
+      clearSavedMatch();
+      savedMatchAvailable = false;
       ui.applySetup({ playerName: humanName, playerCount });
+      ui.hideSavedMatch();
       ui.showMatchSetup();
     } else {
       match.startRound();
@@ -94,6 +150,12 @@ ui.bind({
     clearBotTimer();
   },
   menuClosed() {
+    scheduleAutomation();
+  },
+  modalOpened() {
+    clearBotTimer();
+  },
+  modalClosed() {
     scheduleAutomation();
   },
   tutorialOpened() {
@@ -111,13 +173,26 @@ ui.bind({
   feedbackChanged(enabled) {
     feedback.setEnabled(enabled);
   },
-  resetMatch() {
-    if (!window.confirm("Apagar esta partida e voltar para a tela inicial?")) return;
+  async resetMatch() {
+    if (
+      !(await ui.confirmAction({
+        kicker: "Nova partida",
+        title: "Voltar para a tela inicial?",
+        text: "A partida atual será apagada deste aparelho.",
+        acceptLabel: "Apagar partida",
+        danger: true,
+      }))
+    ) {
+      return;
+    }
     clearBotTimer();
     match.reset();
+    clearSavedMatch();
+    savedMatchAvailable = false;
     announcedResultKey = null;
     persistMatch();
     ui.closeMenu();
+    ui.hideSavedMatch();
     ui.showMatchSetup();
   },
 });
@@ -190,7 +265,9 @@ function scheduleAutomation() {
     match.phase !== "botTurn" ||
     document.hidden ||
     ui.isMenuOpen() ||
-    ui.isTutorialOpen()
+    ui.isTutorialOpen() ||
+    ui.isRulesOpen() ||
+    ui.isConfirmOpen()
   ) return;
   botTimer = window.setTimeout(() => {
     match.runBotTurn();
@@ -213,6 +290,7 @@ function clearBotTimer() {
 }
 
 function persistMatch() {
+  if (match.phase === "idle" && savedMatchAvailable) return true;
   saveMatch(match);
 }
 
@@ -234,20 +312,12 @@ document.addEventListener("visibilitychange", () => {
 
 window.addEventListener("pagehide", persistMatch);
 
-if (restoreMatch(match)) {
-  const human = match.players.find((player) => player.isHuman);
-  ui.applySetup({
-    playerName: human?.name ?? "Voce",
-    playerCount: match.players.length || 4,
-  });
-  saveSetup(ui.getSetup());
-  persistMatch();
-  ui.showResumeNotice();
-  ui.startTutorialIfNeeded();
-  scheduleAutomation();
-}
-
 requestAnimationFrame(loop);
+
+function refreshSavedMatchPrompt() {
+  savedMatchAvailable = hasSavedMatch();
+  ui.showSavedMatch(savedMatchAvailable ? loadSavedMatchSummary() : null);
+}
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) return;

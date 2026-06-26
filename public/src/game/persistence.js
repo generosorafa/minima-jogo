@@ -30,6 +30,31 @@ export function restoreMatch(match, storage = getLocalStorage()) {
   }
 }
 
+export function hasSavedMatch(storage = getLocalStorage()) {
+  return Boolean(readSavedMatchState(storage));
+}
+
+export function loadSavedMatchSummary(storage = getLocalStorage()) {
+  const state = readSavedMatchState(storage);
+  if (!state) return null;
+  const human = state.players?.find((player) => player?.isHuman);
+  const activeCount = state.players?.filter((player) => player?.active).length ?? 0;
+  return {
+    roundNumber: Number.isInteger(state.roundNumber) ? state.roundNumber : 1,
+    playerCount: Array.isArray(state.players) ? state.players.length : 0,
+    activeCount,
+    humanName: cleanSetupName(human?.name) || "Você",
+    humanScore: Number.isFinite(human?.score) ? human.score : 0,
+    phase: typeof state.phase === "string" ? state.phase : "",
+  };
+}
+
+export function clearSavedMatch(storage = getLocalStorage()) {
+  if (!storage) return false;
+  removeItem(storage, MATCH_STORAGE_KEY);
+  return true;
+}
+
 export function saveSetup(setup, storage = getLocalStorage()) {
   if (!storage) return false;
   const playerName = cleanSetupName(setup?.playerName);
@@ -64,6 +89,23 @@ export function loadSetup(storage = getLocalStorage()) {
     };
   } catch {
     removeItem(storage, SETUP_STORAGE_KEY);
+    return null;
+  }
+}
+
+function readSavedMatchState(storage) {
+  if (!storage) return null;
+  try {
+    const serialized = storage.getItem(MATCH_STORAGE_KEY);
+    if (!serialized) return null;
+    const state = JSON.parse(serialized);
+    if (!state || typeof state !== "object" || !Array.isArray(state.players)) {
+      removeItem(storage, MATCH_STORAGE_KEY);
+      return null;
+    }
+    return state;
+  } catch {
+    removeItem(storage, MATCH_STORAGE_KEY);
     return null;
   }
 }
