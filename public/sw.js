@@ -1,4 +1,4 @@
-const CACHE_NAME = "minima-0.9.2-beta.1";
+const CACHE_NAME = "minima-0.9.2-beta.2";
 
 const STATIC_ASSETS = [
   "./",

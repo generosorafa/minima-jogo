@@ -32,7 +32,7 @@ export function restoreMatch(match, storage = getLocalStorage()) {
 
 export function saveSetup(setup, storage = getLocalStorage()) {
   if (!storage) return false;
-  const playerName = String(setup?.playerName ?? "").trim().slice(0, 14) || "Voce";
+  const playerName = cleanSetupName(setup?.playerName);
   const playerCount = Math.max(2, Math.min(6, Number(setup?.playerCount) || 4));
   try {
     storage.setItem(SETUP_STORAGE_KEY, JSON.stringify({ playerName, playerCount }));
@@ -58,7 +58,10 @@ export function loadSetup(storage = getLocalStorage()) {
       removeItem(storage, SETUP_STORAGE_KEY);
       return null;
     }
-    return setup;
+    return {
+      playerName: cleanSetupName(setup.playerName),
+      playerCount: setup.playerCount,
+    };
   } catch {
     removeItem(storage, SETUP_STORAGE_KEY);
     return null;
@@ -80,6 +83,16 @@ function removeItem(storage, key) {
   } catch {
     // Storage can be unavailable in private or restricted browser contexts.
   }
+}
+
+function cleanSetupName(name) {
+  const cleanName = String(name ?? "").trim().replace(/\s+/g, " ").slice(0, 14);
+  return isLegacyDefaultName(cleanName) ? "" : cleanName;
+}
+
+function isLegacyDefaultName(name) {
+  const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return normalized === "voce";
 }
 
 export { MATCH_STORAGE_KEY, SETUP_STORAGE_KEY };

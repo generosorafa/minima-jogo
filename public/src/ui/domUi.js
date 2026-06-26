@@ -87,14 +87,10 @@ export class DomUi {
       this.syncSetup("side");
       actions.setupChanged?.(this.getSetup());
     });
-    this.refs.playerName.addEventListener("focus", (event) => event.currentTarget.select());
     this.refs.tablePlayerName.addEventListener("input", () => {
       this.syncSetup("table");
       actions.setupChanged?.(this.getSetup());
     });
-    this.refs.tablePlayerName.addEventListener("focus", (event) =>
-      event.currentTarget.select(),
-    );
     this.refs.playerCount.addEventListener("change", () => {
       this.syncSetup("side");
       actions.setupChanged?.(this.getSetup());
@@ -140,7 +136,9 @@ export class DomUi {
   }
 
   startMatch(actions, fromTable = false) {
-    const playerName = fromTable ? this.refs.tablePlayerName.value : this.refs.playerName.value;
+    const playerName = normalizePlayerNameForMatch(
+      fromTable ? this.refs.tablePlayerName.value : this.refs.playerName.value,
+    );
     const playerCount = fromTable
       ? Number(this.refs.tablePlayerCount.value)
       : Number(this.refs.playerCount.value);
@@ -157,16 +155,17 @@ export class DomUi {
     this.refs.tablePlayerCount.value = this.refs.playerCount.value;
   }
 
-  applySetup({ playerName = "Voce", playerCount = 4 } = {}) {
-    this.refs.playerName.value = playerName;
-    this.refs.tablePlayerName.value = playerName;
+  applySetup({ playerName = "", playerCount = 4 } = {}) {
+    const setupName = normalizeSetupName(playerName);
+    this.refs.playerName.value = setupName;
+    this.refs.tablePlayerName.value = setupName;
     this.refs.playerCount.value = String(playerCount);
     this.refs.tablePlayerCount.value = String(playerCount);
   }
 
   getSetup() {
     return {
-      playerName: this.refs.tablePlayerName.value,
+      playerName: normalizeSetupName(this.refs.tablePlayerName.value),
       playerCount: Number(this.refs.tablePlayerCount.value),
     };
   }
@@ -555,4 +554,18 @@ function createRoundCard(card) {
 
 function isRedCard(card) {
   return card?.suit === "H" || card?.suit === "D";
+}
+
+function normalizeSetupName(name) {
+  const setupName = String(name ?? "").trim().replace(/\s+/g, " ").slice(0, 14);
+  return isLegacyDefaultName(setupName) ? "" : setupName;
+}
+
+function normalizePlayerNameForMatch(name) {
+  return normalizeSetupName(name) || "Você";
+}
+
+function isLegacyDefaultName(name) {
+  const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return normalized === "voce";
 }
