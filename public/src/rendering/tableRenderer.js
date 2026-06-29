@@ -11,6 +11,10 @@ const REVEAL_STAGGER_MS = 115;
 const REVEAL_PLAYER_STAGGER_MS = 70;
 const ROUND_REVEAL_SCORE_HOLD_MS = 3200;
 const ACTION_FEEDBACK_MS = 980;
+const MAX_CANVAS_DPR = 2;
+const MOBILE_CANVAS_PIXEL_BUDGET = 1750000;
+const TABLET_CANVAS_PIXEL_BUDGET = 1450000;
+const DESKTOP_CANVAS_PIXEL_BUDGET = 1850000;
 
 export class TableRenderer {
   constructor(canvas) {
@@ -18,22 +22,24 @@ export class TableRenderer {
     this.ctx = canvas.getContext("2d");
     this.hitRegions = [];
     this.cardArt = new CardArt();
+    this.backgroundCache = null;
   }
 
   render(state, now = performance.now()) {
     const rect = this.canvas.getBoundingClientRect();
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const dpr = canvasPixelRatioForSize(rect.width, rect.height);
     const width = Math.max(320, Math.floor(rect.width * dpr));
     const height = Math.max(260, Math.floor(rect.height * dpr));
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.canvas.width = width;
       this.canvas.height = height;
+      this.backgroundCache = null;
     }
     this.hitRegions = [];
     const ctx = this.ctx;
     ctx.save();
     ctx.scale(dpr, dpr);
-    this.drawBackground(ctx, rect.width, rect.height);
+    this.drawBackground(ctx, rect.width, rect.height, dpr);
     if (state.phase !== "idle") {
       this.drawCenter(ctx, state, rect.width, rect.height, now);
       this.drawPlayers(ctx, state, rect.width, rect.height, now);
@@ -43,7 +49,37 @@ export class TableRenderer {
     ctx.restore();
   }
 
-  drawBackground(ctx, width, height) {
+  drawBackground(ctx, width, height, dpr = 1) {
+    const cached = this.getBackgroundCache(width, height, dpr);
+    if (cached) {
+      ctx.drawImage(cached, 0, 0, width, height);
+      return;
+    }
+    this.drawBackgroundArt(ctx, width, height);
+  }
+
+  getBackgroundCache(width, height, dpr) {
+    const pixelWidth = Math.max(1, Math.floor(width * dpr));
+    const pixelHeight = Math.max(1, Math.floor(height * dpr));
+    if (
+      this.backgroundCache?.pixelWidth === pixelWidth &&
+      this.backgroundCache?.pixelHeight === pixelHeight
+    ) {
+      return this.backgroundCache.canvas;
+    }
+
+    const canvas = createRenderCanvas(pixelWidth, pixelHeight);
+    const cacheCtx = canvas?.getContext?.("2d");
+    if (!cacheCtx) return null;
+    cacheCtx.save();
+    cacheCtx.scale(dpr, dpr);
+    this.drawBackgroundArt(cacheCtx, width, height);
+    cacheCtx.restore();
+    this.backgroundCache = { canvas, pixelWidth, pixelHeight };
+    return canvas;
+  }
+
+  drawBackgroundArt(ctx, width, height) {
     const playRight = playableRight(width);
     ctx.clearRect(0, 0, width, height);
     const bg = ctx.createRadialGradient(
@@ -871,6 +907,37 @@ function wave(now, duration) {
 
 function playableRight(width) {
   return width >= 1000 ? width - 340 : width;
+}
+
+function createRenderCanvas(width, height) {
+  if (typeof OffscreenCanvas === "function") {
+    return new OffscreenCanvas(width, height);
+  }
+  if (typeof document === "undefined" || typeof document.createElement !== "function") {
+    return null;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
+function canvasPixelBudgetForSize(width, height) {
+  if (width < 640) return MOBILE_CANVAS_PIXEL_BUDGET;
+  if (width < 1000 || (width < 1280 && height < 920)) return TABLET_CANVAS_PIXEL_BUDGET;
+  return DESKTOP_CANVAS_PIXEL_BUDGET;
+}
+
+export function canvasPixelRatioForSize(
+  width,
+  height,
+  devicePixelRatio = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1,
+) {
+  const cssPixels = Math.max(1, width * height);
+  const budget = canvasPixelBudgetForSize(width, height);
+  const budgetRatio = Math.sqrt(budget / cssPixels);
+  const dpr = clamp(devicePixelRatio || 1, 1, Math.min(MAX_CANVAS_DPR, budgetRatio));
+  return Math.round(dpr * 100) / 100;
 }
 
 export function shouldRevealFlyingCard(action, leg = "incoming") {

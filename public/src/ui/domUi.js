@@ -85,6 +85,9 @@ export class DomUi {
     this.tutorialStep = 0;
     this.tutorialActive = false;
     this.actions = null;
+    this.scoreboardSignature = "";
+    this.logSignature = "";
+    this.roundOverlaySignature = "";
   }
 
   bind(actions) {
@@ -402,13 +405,15 @@ export class DomUi {
     ) {
       this.resetStopConfirmation();
     }
-    document.body.dataset.phase = state.phase;
-    this.refs.phaseBadge.textContent = state.phaseLabel;
-    this.refs.statusLine.textContent = revealPending
+    if (document.body.dataset.phase !== state.phase) {
+      document.body.dataset.phase = state.phase;
+    }
+    setText(this.refs.phaseBadge, state.phaseLabel);
+    setText(this.refs.statusLine, revealPending
       ? "Revelando as cartas da rodada."
       : this.stopConfirmationPending
         ? "Confirme a parada. Empate tambem faz voce perder."
-        : state.status;
+        : state.status);
     this.updateTableHud(state, revealPending);
     this.updateDrawn(state);
     this.updateButtons(state);
@@ -419,33 +424,33 @@ export class DomUi {
 
   updateTableHud(state, revealPending = false) {
     const activeCount = state.players.filter((player) => player.active).length;
-    this.refs.tableRound.textContent = state.roundNumber
+    setText(this.refs.tableRound, state.roundNumber
       ? `Rodada ${state.roundNumber}`
-      : "Nova partida";
-    this.refs.tablePlayers.textContent = `${activeCount || state.players.length || 0} jogadores`;
-    this.refs.tablePhaseText.textContent = state.phaseLabel;
-    this.refs.tableStatusText.textContent = revealPending
+      : "Nova partida");
+    setText(this.refs.tablePlayers, `${activeCount || state.players.length || 0} jogadores`);
+    setText(this.refs.tablePhaseText, state.phaseLabel);
+    setText(this.refs.tableStatusText, revealPending
       ? "Revelando as cartas."
       : this.stopConfirmationPending
         ? "Confirme a parada. Empate tambem faz voce perder."
-        : shortStatus(state);
+        : shortStatus(state));
   }
 
   updateDrawn(state) {
     if (!state.currentDrawn) {
-      this.refs.drawnPanel.hidden = true;
-      this.refs.drawnCard.textContent = "--";
-      this.refs.drawnTitle.textContent = "Sem carta";
-      this.refs.drawnMeta.textContent = "Compre do baralho ou do morto.";
+      setHidden(this.refs.drawnPanel, true);
+      setText(this.refs.drawnCard, "--");
+      setText(this.refs.drawnTitle, "Sem carta");
+      setText(this.refs.drawnMeta, "Compre do baralho ou do morto.");
       return;
     }
-    this.refs.drawnPanel.hidden = false;
-    this.refs.drawnCard.textContent = formatCard(state.currentDrawn);
-    this.refs.drawnTitle.textContent = `${formatCard(state.currentDrawn)} - ${cardValue(state.currentDrawn)} pts`;
-    this.refs.drawnMeta.textContent =
+    setHidden(this.refs.drawnPanel, false);
+    setText(this.refs.drawnCard, formatCard(state.currentDrawn));
+    setText(this.refs.drawnTitle, `${formatCard(state.currentDrawn)} - ${cardValue(state.currentDrawn)} pts`);
+    setText(this.refs.drawnMeta,
       state.currentDrawSource === "discard"
         ? "Veio do morto; precisa entrar na sua mao."
-        : "Pode trocar, descartar ou pedir para parar antes da acao.";
+        : "Pode trocar, descartar ou pedir para parar antes da acao.");
   }
 
   updateButtons(state) {
@@ -455,34 +460,41 @@ export class DomUi {
     const canStop = canAct && !state.stopRequestedBy;
     const canAdvance = state.phase === "roundOver" || state.phase === "matchOver";
 
-    this.refs.drawStockButton.disabled = !canDraw;
-    this.refs.drawDiscardButton.disabled = !canDraw || !state.discardTop;
-    this.refs.tableStopButton.disabled = !canStop;
-    this.refs.tableDiscardDrawnButton.disabled = !canDiscardDrawn;
-    this.refs.nextRoundButton.disabled = !canAdvance;
-    this.refs.nextRoundButton.textContent =
-      state.phase === "matchOver" ? "Nova partida" : "Proxima rodada";
-    this.refs.playerCount.disabled = state.phase !== "idle" && state.phase !== "matchOver";
-    this.refs.playerName.disabled = state.phase !== "idle" && state.phase !== "matchOver";
-    this.refs.tablePlayerCount.disabled = state.phase !== "idle";
-    this.refs.tablePlayerName.disabled = state.phase !== "idle";
-    this.refs.tableStartMatchButton.disabled = state.phase !== "idle";
-    this.refs.mobileMenuButton.hidden =
-      state.phase === "idle" || state.phase === "matchOver";
+    setDisabled(this.refs.drawStockButton, !canDraw);
+    setDisabled(this.refs.drawDiscardButton, !canDraw || !state.discardTop);
+    setDisabled(this.refs.tableStopButton, !canStop);
+    setDisabled(this.refs.tableDiscardDrawnButton, !canDiscardDrawn);
+    setDisabled(this.refs.nextRoundButton, !canAdvance);
+    setText(this.refs.nextRoundButton, state.phase === "matchOver" ? "Nova partida" : "Proxima rodada");
+    setDisabled(this.refs.playerCount, state.phase !== "idle" && state.phase !== "matchOver");
+    setDisabled(this.refs.playerName, state.phase !== "idle" && state.phase !== "matchOver");
+    setDisabled(this.refs.tablePlayerCount, state.phase !== "idle");
+    setDisabled(this.refs.tablePlayerName, state.phase !== "idle");
+    setDisabled(this.refs.tableStartMatchButton, state.phase !== "idle");
+    setHidden(this.refs.mobileMenuButton, state.phase === "idle" || state.phase === "matchOver");
 
-    this.refs.startOverlay.hidden = state.phase !== "idle";
-    this.refs.drawStockButton.hidden = !canDraw;
-    this.refs.drawDiscardButton.hidden = !canDraw;
-    this.refs.tableActionBar.hidden = !canAct;
-    this.refs.tableStopButton.hidden = !canStop;
-    this.refs.tableDiscardDrawnButton.hidden = !(canAct && state.currentDrawSource === "stock");
-    this.refs.nextRoundButton.hidden = !canAdvance;
+    setHidden(this.refs.startOverlay, state.phase !== "idle");
+    setHidden(this.refs.drawStockButton, !canDraw);
+    setHidden(this.refs.drawDiscardButton, !canDraw);
+    setHidden(this.refs.tableActionBar, !canAct);
+    setHidden(this.refs.tableStopButton, !canStop);
+    setHidden(this.refs.tableDiscardDrawnButton, !(canAct && state.currentDrawSource === "stock"));
+    setHidden(this.refs.nextRoundButton, !canAdvance);
     if (state.phase === "idle" || state.phase === "matchOver") {
       this.closeMenu();
     }
   }
 
   updateScoreboard(players, holdRoundScore = false) {
+    const signature = players.map((player) => {
+      const displayScore = holdRoundScore
+        ? Math.max(0, player.score - (player.lastDelta ?? 0))
+        : player.score;
+      const displayActive = holdRoundScore && player.lastDelta !== null ? true : player.active;
+      return `${player.id}:${player.name}:${displayScore}:${displayActive}`;
+    }).join("|");
+    if (this.scoreboardSignature === signature) return;
+    this.scoreboardSignature = signature;
     this.refs.scoreboard.replaceChildren(
       ...players.map((player) => {
         const displayScore = holdRoundScore
@@ -510,13 +522,23 @@ export class DomUi {
       Boolean(state.roundResult) &&
       (state.phase === "roundOver" || state.phase === "matchOver") &&
       revealAge >= ROUND_REVEAL_DELAY_MS;
-    this.refs.roundOverlay.hidden = !showOverlay;
-    if (!showOverlay) return;
+    setHidden(this.refs.roundOverlay, !showOverlay);
+    if (!showOverlay) {
+      this.roundOverlaySignature = "";
+      return;
+    }
 
-    this.refs.roundOverlay.dataset.kind = state.phase === "matchOver" ? "match" : "round";
-    this.refs.roundKicker.textContent = roundOverlayKicker(state);
-    this.refs.roundOverlayTitle.textContent = roundOverlayTitle(state);
-    this.refs.roundOverlaySummary.textContent = roundOverlaySummary(state);
+    const signature = roundOverlaySignature(state);
+    if (this.roundOverlaySignature === signature) return;
+    this.roundOverlaySignature = signature;
+
+    const kind = state.phase === "matchOver" ? "match" : "round";
+    if (this.refs.roundOverlay.dataset.kind !== kind) {
+      this.refs.roundOverlay.dataset.kind = kind;
+    }
+    setText(this.refs.roundKicker, roundOverlayKicker(state));
+    setText(this.refs.roundOverlayTitle, roundOverlayTitle(state));
+    setText(this.refs.roundOverlaySummary, roundOverlaySummary(state));
     this.refs.roundHighlights.replaceChildren(...createRoundHighlights(state));
     const playedPlayers = state.players.filter(
       (player) => player.lastHandValue !== null || state.roundResult.handScores.has(player.id),
@@ -528,6 +550,9 @@ export class DomUi {
   }
 
   updateLog(events) {
+    const signature = events.join("\n");
+    if (this.logSignature === signature) return;
+    this.logSignature = signature;
     this.refs.eventLog.replaceChildren(
       ...events.map((event) => {
         const item = document.createElement("li");
@@ -536,6 +561,19 @@ export class DomUi {
       }),
     );
   }
+}
+
+function setText(node, value) {
+  const text = String(value);
+  if (node.textContent !== text) node.textContent = text;
+}
+
+function setHidden(node, hidden) {
+  if (node.hidden !== hidden) node.hidden = hidden;
+}
+
+function setDisabled(node, disabled) {
+  if (node.disabled !== disabled) node.disabled = disabled;
 }
 
 function shortStatus(state) {
@@ -693,6 +731,26 @@ function createRoundRow(player, state) {
 
   row.append(name, cards, hand, delta, total);
   return row;
+}
+
+function roundOverlaySignature(state) {
+  const result = state.roundResult;
+  if (!result) return "";
+  const players = state.players.map((player) => {
+    const hand = player.hand.map(shortCard).join(",");
+    const handValue = player.lastHandValue ?? result.handScores.get(player.id) ?? "";
+    const delta = player.lastDelta ?? result.deltas.get(player.id) ?? "";
+    return `${player.id}:${player.name}:${player.active}:${player.score}:${handValue}:${delta}:${hand}`;
+  });
+  return [
+    state.phase,
+    state.roundNumber,
+    result.stopperId,
+    result.success,
+    result.message,
+    state.winner?.id ?? "",
+    ...players,
+  ].join("|");
 }
 
 function lowestHandPlayers(state) {

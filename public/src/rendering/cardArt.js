@@ -3,6 +3,7 @@ export const CARD_ART_HEIGHT = 256;
 export const CARD_ART_RATIO = CARD_ART_HEIGHT / CARD_ART_WIDTH;
 
 const ATLAS_COLUMNS = 9;
+const IMAGE_SMOOTHING_QUALITY = "medium";
 const SUIT_INDEX = Object.freeze({ C: 0, D: 1, H: 2, S: 3 });
 const RANK_INDEX = Object.freeze({
   A: 0,
@@ -40,7 +41,9 @@ export class CardArt {
     const sourceY = Math.floor(index / ATLAS_COLUMNS) * CARD_ART_HEIGHT;
     ctx.save();
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    if ("imageSmoothingQuality" in ctx) {
+      ctx.imageSmoothingQuality = IMAGE_SMOOTHING_QUALITY;
+    }
     ctx.drawImage(
       this.faces,
       sourceX,
@@ -60,7 +63,9 @@ export class CardArt {
     if (!isReady(this.back)) return false;
     ctx.save();
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    if ("imageSmoothingQuality" in ctx) {
+      ctx.imageSmoothingQuality = IMAGE_SMOOTHING_QUALITY;
+    }
     ctx.drawImage(this.back, x, y, width, height);
     ctx.restore();
     return true;
